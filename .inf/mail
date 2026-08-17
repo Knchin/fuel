@@ -1,0 +1,34 @@
+tmpulaedner20@awsl.uk
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZGRyZXNzIjoidG1wdWxhZWRuZXIyMEBhd3NsLnVrIiwiYWRkcmVzc19pZCI6NDQ2NTYwfQ.E_Ej6EhXxo1f76dcOBHZyvn9dUvR0HbtOuP6sVY0XgA
+
+Current address: tmpulaedner20@awsl.uk
+API Base: https://temp-email-api.awsl.uk
+Agent skill: https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/skills/cf-temp-mail-agent-mail/SKILL.md
+Agent config:
+{
+  "base": "https://temp-email-api.awsl.uk",
+  "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZGRyZXNzIjoidG1wdWxhZWRuZXIyMEBhd3NsLnVrIiwiYWRkcmVzc19pZCI6NDQ2NTYwfQ.E_Ej6EhXxo1f76dcOBHZyvn9dUvR0HbtOuP6sVY0XgA",
+  "site_password": ""
+}
+
+SMTP host: smtp.awsl.uk
+SMTP port: 10025
+IMAP host: imap.awsl.uk
+IMAP port: 11143
+Security: STARTTLS
+Username: tmpulaedner20@awsl.uk
+Password: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZGRyZXNzIjoidG1wdWxhZWRuZXIyMEBhd3NsLnVrIiwiYWRkcmVzc19pZCI6NDQ2NTYwfQ.E_Ej6EhXxo1f76dcOBHZyvn9dUvR0HbtOuP6sVY0XgA
+
+https://mail.awsl.uk/?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZGRyZXNzIjoidG1wdWxhZWRuZXIyMEBhd3NsLnVrIiwiYWRkcmVzc19pZCI6NDQ2NTYwfQ.E_Ej6EhXxo1f76dcOBHZyvn9dUvR0HbtOuP6sVY0XgA
+
+
+
+P@ss2020/?0101
+
+https://uyeipadtsvbtrvtimotz.supabase.co
+
+sb_publishable_9JfGTlFSJf4gdS7Bg5Bl5w_KsUtHWn4
+
+postgresql://postgres:[YOUR-PASSWORD]@db.uyeipadtsvbtrvtimotz.supabase.co:5432/postgres
+

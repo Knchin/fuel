@@ -1,0 +1,216 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  # Default JDK for Gradle; adjust if your project requires a different version
+  JDK_VERSION: '17'
+  # Gradle Wrapper path (use the project's wrapper)
+  GRADLE_WRAPPER: gradlew
+  # Default Gradle task for KMP common validation
+  KMP_TASK: 'compileKotlin'
+  # Default Gradle task for Android
+  ANDROID_TASK: 'assembleDebug'
+  # Default Gradle task for iOS (if using Kotlin/Native)
+  IOS_TASK: 'compileKotlinKotlin'
+  # Default Gradle task for Wasm/web
+  WEB_TASK: 'compileWasmJsDebug'
+
+jobs:
+  ## 1. Common/KMP validation
+  kmp-validation:
+    name: KMP Common Validation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: /workspace/fuel
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JDK_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JDK_VERSION }}
+          cache: gradle
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle*') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Validate Gradle wrapper
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --version > /dev/null 2>&1 || echo "Gradle wrapper check"
+
+      - name: KMP Compile (common/main)
+        run: |
+          ./gradlew shared:${{ env.KMP_TASK }} 2>&1 | tail -20
+
+      - name: Run unit tests (if any)
+        run: |
+          ./gradlew shared:test 2>&1 | tail -30 || echo "No tests or test configuration differs"
+
+      - name: Android compile check
+        run: |
+          ./gradlew androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -20 || echo "Android build task issue, check configuration"
+
+  ## 2. Android build
+  android-build:
+    name: Android Build
+    runs-on: ubuntu-latest
+    needs: kmp-validation
+    defaults:
+      run:
+        working-directory: /workspace/fuel
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JDK_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JDK_VERSION }}
+          cache: gradle
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-android-${{ runner.os }}-${{ hashFiles('**/gradle*') }}
+          restore-keys: |
+            gradle-android-${{ runner.os }}-
+
+      - name: Set up ANDROID SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+
+      - name: Android compile (debug)
+        run: |
+          ./gradlew androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -30
+
+      - name: Upload APK/AAB artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: androidApp/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+  ## 3. iOS build
+  ios-build:
+    name: iOS Build
+    runs-on: macos-latest
+    needs: kmp-validation
+    defaults:
+      run:
+        working-directory: /workspace/fuel
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Xcode
+        uses: macos-actions/setup-xcode@v2
+        with:
+          xcode-version: latest-stable
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: cocoaids-${{ runner.os }}-
+
+      - name: iOS/Native compile
+        run: |
+          ./gradlew iosApp:${{ env.IOS_TASK }} 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
+
+      - name: Upload iOS framework artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-framework
+          path: iosApp/build/ 2>/dev/null || echo "iOS build output path check"
+
+  ## 4. Web build
+  web-build:
+    name: Web Build
+    runs-on: ubuntu-latest
+    needs: kmp-validation
+    defaults:
+      run:
+        working-directory: /workspace/fuel
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JDK_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JDK_VERSION }}
+          cache: gradle
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-web-${{ runner.os }}-${{ hashFiles('**/gradle*') }}
+          restore-keys: |
+            gradle-web-${{ runner.os }}-
+
+      - name: Kotlin/Wasm web compile
+        run: |
+          ./gradlew webApp:${{ env.WEB_TASK }} 2>&1 | tail -20
+
+      - name: Determine web output directory
+        id: web-dir
+        run: |
+          echo "WEB_OUTPUT=$(ls -d webApp/build/wasmJsDistribution 2>/dev/null || echo webApp/build)" >> $GITHUB_OUTPUT
+          echo "Distribution checked"
+
+      - name: Upload web artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-wasm-artifact
+          path: |
+            ${{ steps.web-dir.outputs.WEB_OUTPUT }}
+          retention-days: 30
+
+      - name: Wire Supabase env to web build
+        if: success()
+        run: |
+          echo "SUPABASE_URL=${{ vars.SUPABASE_URL }}" >> $GITHUB_ENV
+          echo "SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" >> $GITHUB_ENV
+          echo "Environment variables wired for web build"

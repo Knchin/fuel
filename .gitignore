@@ -1,0 +1,6 @@
+.gradle/
+/workspace/fuel/.gradle/
+/workspace/fuel/build/
+/workspace/fuel/local.properties
+/*.klib
+*.jar

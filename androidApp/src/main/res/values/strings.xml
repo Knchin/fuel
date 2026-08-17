@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Station Essence France</string>
+    <string name="find_fuel">Trouver du carburant</string>
+    <string name="stations_proximite">Stations à proximité</string>
+    <string name="refresh">Actualiser</string>
+    <string name="route">Itinéraire</string>
+    <string name="search_adresse">Rechercher une adresse</string>
+    <string name="use_position">Utiliser ma position</string>
+    <string name="no_stations_found">Aucune station trouvée dans ce rayon.</string>
+    <string name="no_price_available">Aucun prix disponible pour ce carburant.</string>
+    <string name="choose_location">Choisissez une localisation pour rechercher les stations.</string>
+    <string name="offline_mode">Vous êtes hors connexion.</string>
+    <string name="stale_data">Les prix peuvent être obsolètes.</string>
+    <string name="data_recorded">Affichage des données enregistrées à</string>
+</resources>
