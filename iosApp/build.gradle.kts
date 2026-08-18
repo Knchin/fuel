@@ -1,5 +1,5 @@
 plugins {
-    kotlin("ios") version "1.9.22"
+    kotlin("ios") version "1.8.22"
 }
 
 kotlin {
