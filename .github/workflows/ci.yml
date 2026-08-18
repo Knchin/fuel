@@ -234,7 +234,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_PROJECT_NAME: france-fuel-station
+          CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
         run: |
           cat > /tmp/wrangler.toml <<EOF
           name = "france-fuel-station"
@@ -270,7 +270,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: france-fuel-station
+          projectName: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
           directory: webApp/build
           projectName: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
           directory: webApp/build
