@@ -30,16 +30,18 @@ jobs:
           gradle-version: '8.14'
 
       - name: Ensure gradle is available (setup-gradle action handles this)
-        run: echo "Gradle will be set up by the action"
+        run: |
+          echo "Gradle will be set up by the action"
+          gradle --version
 
       - name: KMP Compile (common/main)
-        run: gradle shared:compileKotlin
+        run: gradle clean shared:compileKotlin --info 2>&1 | tail -40
 
       - name: Run unit tests (if any)
-        run: gradle shared:test 2>&1 | tail -30 || echo "No tests or test configuration differs"
+        run: gradle clean shared:test --info 2>&1 | tail -40 || echo "No tests or test configuration differs"
 
       - name: Android compile check
-        run: gradle androidApp:assembleDebug 2>&1 | tail -20 || echo "Android build task issue, check configuration"
+        run: gradle clean androidApp:assembleDebug --info 2>&1 | tail -30 || echo "Android build task issue, check configuration"
 
   android-build:
     name: Android Build
@@ -70,7 +72,7 @@ jobs:
           api-level: 34
 
       - name: Android compile (debug)
-        run: gradle androidApp:assembleDebug 2>&1 | tail -30
+        run: gradle clean androidApp:assembleDebug --info 2>&1 | tail -30
 
       - name: Upload APK/AAB artifact
         if: success()
@@ -102,7 +104,7 @@ jobs:
           gradle-version: '8.14'
 
       - name: iOS/Native compile
-        run: gradle iosApp:compileKotlinKotlin 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
+        run: gradle clean iosApp:compileKotlinKotlin --info 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
 
   web-build:
     name: Web Build
@@ -128,7 +130,7 @@ jobs:
           gradle-version: '8.14'
 
       - name: Kotlin/Wasm web compile
-        run: gradle webApp:compileWasmJsDebug 2>&1 | tail -20
+        run: gradle clean webApp:compileWasmJsDebug --info 2>&1 | tail -20
 
       - name: Determine web output directory
         id: web-dir
