@@ -7,11 +7,9 @@ on:
     branches: [main]
 
 env:
-  # Deployment environment settings
   DEPLOY_BRANCH: main
 
 jobs:
-  ## 5. Supabase backend deployment
   supabase-deploy:
     name: Supabase Backend Deploy
     runs-on: ubuntu-latest
@@ -43,7 +41,7 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
           supabase --version
 
       - name: Apply database migrations
@@ -52,7 +50,7 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
         run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
           supabase db push --schema-public 2>&1 | tail -20 || echo "DB push step"
 
       - name: Deploy Edge Functions
@@ -61,16 +59,15 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
         run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
           supabase functions deploy ingest-fuel-data 2>&1 | tail -20 || echo "Functions deploy step"
 
       - name: Verify Supabase deployment
         if: success()
         run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
           supabase status 2>&1 | tail -10 || echo "Supabase status check"
 
-  ## 6. Cloudflare frontend deployment
   cloudflare-deploy:
     name: Cloudflare Frontend Deploy
     runs-on: ubuntu-latest
@@ -105,6 +102,15 @@ jobs:
           auth_token = "${{ secrets.CLOUDFLARE_API_TOKEN }}"
           EOF
           cat /tmp/wrangler.toml
+
+      - name: Try Gradle wrapper if available for web build path
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew webApp:${{ env.WEB_TASK }} 2>&1 | tail -20
+          else
+            echo "No gradlew found, using system Gradle"
+          fi
 
       - name: Deploy to Cloudflare Workers Static Assets
         if: success()

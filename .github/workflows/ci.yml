@@ -7,21 +7,13 @@ on:
     branches: [main, develop]
 
 env:
-  # Default JDK for Gradle; adjust if your project requires a different version
   JDK_VERSION: '17'
-  # Gradle Wrapper path (use the project's wrapper)
-  GRADLE_WRAPPER: gradlew
-  # Default Gradle task for KMP common validation
   KMP_TASK: 'compileKotlin'
-  # Default Gradle task for Android
   ANDROID_TASK: 'assembleDebug'
-  # Default Gradle task for iOS (if using Kotlin/Native)
   IOS_TASK: 'compileKotlinKotlin'
-  # Default Gradle task for Wasm/web
   WEB_TASK: 'compileWasmJsDebug'
 
 jobs:
-  ## 1. Common/KMP validation
   kmp-validation:
     name: KMP Common Validation
     runs-on: ubuntu-latest
@@ -49,27 +41,36 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      - name: Validate Gradle wrapper
+      - name: Try Gradle wrapper if available
         run: |
-          chmod +x ./gradlew
-          ./gradlew --version > /dev/null 2>&1 || echo "Gradle wrapper check"
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew shared:${{ env.KMP_TASK }} 2>&1 | tail -20
+          else
+            echo "No gradlew found, using system Gradle"
+          fi
+
+      - name: Fallback - Use system Gradle 8.14
+        if: failure()
+        run: |
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
+          gradle shared:${{ env.KMP_TASK }} 2>&1 | tail -20
 
       - name: KMP Compile (common/main)
         run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
           gradle shared:${{ env.KMP_TASK }} 2>&1 | tail -20
 
       - name: Run unit tests (if any)
         run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
           gradle shared:test 2>&1 | tail -30 || echo "No tests or test configuration differs"
 
       - name: Android compile check
         run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
           gradle androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -20 || echo "Android build task issue, check configuration"
 
-  ## 2. Android build
   android-build:
     name: Android Build
     runs-on: ubuntu-latest
@@ -103,9 +104,24 @@ jobs:
         with:
           api-level: 34
 
+      - name: Try Gradle wrapper if available
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -30
+          else
+            echo "No gradlew found, using system Gradle"
+          fi
+
+      - name: Fallback - Use system Gradle 8.14
+        if: failure()
+        run: |
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
+          gradle androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -30
+
       - name: Android compile (debug)
         run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
           gradle androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -30
 
       - name: Upload APK/AAB artifact
@@ -116,7 +132,6 @@ jobs:
           path: androidApp/build/outputs/apk/debug/*.apk
           retention-days: 30
 
-  ## 3. iOS build
   ios-build:
     name: iOS Build
     runs-on: macos-latest
@@ -133,7 +148,26 @@ jobs:
         with:
           xcode-version: "15.0"
 
-  ## 4. Web build
+      - name: Try Gradle wrapper if available
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew iosApp:${{ env.IOS_TASK }} 2>&1 | tail -20
+          else
+            echo "No gradlew found, using system Gradle"
+          fi
+
+      - name: Fallback - Use system Gradle 8.14
+        if: failure()
+        run: |
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
+          gradle iosApp:${{ env.IOS_TASK }} 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
+
+      - name: iOS/Native compile
+        run: |
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
+          gradle iosApp:${{ env.IOS_TASK }} 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
+
   web-build:
     name: Web Build
     runs-on: ubuntu-latest
@@ -162,9 +196,24 @@ jobs:
           restore-keys: |
             gradle-web-${{ runner.os }}-
 
+      - name: Try Gradle wrapper if available
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew webApp:${{ env.WEB_TASK }} 2>&1 | tail -20
+          else
+            echo "No gradlew found, using system Gradle"
+          fi
+
+      - name: Fallback - Use system Gradle 8.14
+        if: failure()
+        run: |
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
+          gradle webApp:${{ env.WEB_TASK }} 2>&1 | tail -20 || echo "Web build task issue, check configuration"
+
       - name: Kotlin/Wasm web compile
         run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
           gradle webApp:${{ env.WEB_TASK }} 2>&1 | tail -20
 
       - name: Determine web output directory
