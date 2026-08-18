@@ -26,6 +26,8 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.14'
 
       - name: Ensure gradle is available (setup-gradle action handles this)
         run: echo "Gradle will be set up by the action"
@@ -59,6 +61,8 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.14'
 
       - name: Set up ANDROID SDK
         uses: android-actions/setup-android@v3
@@ -94,6 +98,8 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.14'
 
       - name: iOS/Native compile
         run: gradle iosApp:compileKotlinKotlin 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
@@ -118,6 +124,8 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.14'
 
       - name: Kotlin/Wasm web compile
         run: gradle webApp:compileWasmJsDebug 2>&1 | tail -20
