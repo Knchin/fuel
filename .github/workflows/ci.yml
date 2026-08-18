@@ -81,8 +81,7 @@ jobs:
           name: android-debug-apk
           path: androidApp/build/outputs/apk/debug/*.apk
           retention-days: 30
-
-  ios-build:
+ios-build:
     name: iOS Build
     runs-on: macos-latest
     needs: kmp-validation
@@ -92,16 +91,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Set up Xcode
-        uses: actions/setup-xcode@v3
-        with:
-          xcode-version: "15.0"
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.14'
 
       - name: iOS/Native compile
         run: gradle clean iosApp:compileKotlinKotlin --info 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
