@@ -43,9 +43,8 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          export PATH="$HOME/.supabase/bin:$PATH"
-          # Configure Supabase project ref from variable
-          supabase config set --project-ref "${{ vars.SUPABASE_URL }}" 2>&1 || echo "Supabase config step"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          supabase --version
 
       - name: Apply database migrations
         if: success()
@@ -53,7 +52,7 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
         run: |
-          export PATH="$HOME/.supabase/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
           supabase db push --schema-public 2>&1 | tail -20 || echo "DB push step"
 
       - name: Deploy Edge Functions
@@ -62,13 +61,13 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
         run: |
-          export PATH="$HOME/.supabase/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
           supabase functions deploy ingest-fuel-data 2>&1 | tail -20 || echo "Functions deploy step"
 
       - name: Verify Supabase deployment
         if: success()
         run: |
-          export PATH="$HOME/.supabase/bin:$PATH"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
           supabase status 2>&1 | tail -10 || echo "Supabase status check"
 
   ## 6. Cloudflare frontend deployment
@@ -99,22 +98,16 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
         run: |
-          # Configure wrangler with GitHub secrets/variables
           cat > /tmp/wrangler.toml <<EOF
           name = "france-fuel-station"
           account_id = "${{ vars.CLOUDFLARE_ACCOUNT_ID }}"
           project_name = "${{ vars.CLOUDFLARE_PROJECT_NAME }}"
           auth_token = "${{ secrets.CLOUDFLARE_API_TOKEN }}"
           EOF
-          # Verify wrangler config
           cat /tmp/wrangler.toml
 
       - name: Deploy to Cloudflare Workers Static Assets
         if: success()
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
         run: |
           npx wrangler publish webApp/build 2>&1 | tail -20 || echo "Wrangler publish step - checking output path"
 

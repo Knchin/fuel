@@ -9,7 +9,7 @@ on:
 env:
   # Default JDK for Gradle; adjust if your project requires a different version
   JDK_VERSION: '17'
-  # Gradle Wrapper path (use the project's wrapper)
+  # Gradle Wrapper path reference (not used directly; gradle command used instead)
   GRADLE_WRAPPER: gradlew
   # Default Gradle task for KMP common validation
   KMP_TASK: 'compileKotlin'
@@ -49,22 +49,26 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      - name: Validate Gradle wrapper
+      - name: Validate Gradle command
         run: |
-          chmod +x ./gradlew
-          ./gradlew --version > /dev/null 2>&1 || echo "Gradle wrapper check"
+          # Use the Gradle wrapper from the system cache
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          gradle --version > /dev/null 2>&1 || echo "Gradle check"
 
       - name: KMP Compile (common/main)
         run: |
-          ./gradlew shared:${{ env.KMP_TASK }} 2>&1 | tail -20
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          gradle shared:${{ env.KMP_TASK }} 2>&1 | tail -20
 
       - name: Run unit tests (if any)
         run: |
-          ./gradlew shared:test 2>&1 | tail -30 || echo "No tests or test configuration differs"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          gradle shared:test 2>&1 | tail -30 || echo "No tests or test configuration differs"
 
       - name: Android compile check
         run: |
-          ./gradlew androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -20 || echo "Android build task issue, check configuration"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          gradle androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -20 || echo "Android build task issue, check configuration"
 
   ## 2. Android build
   android-build:
@@ -102,7 +106,8 @@ jobs:
 
       - name: Android compile (debug)
         run: |
-          ./gradlew androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -30
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          gradle androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -30
 
       - name: Upload APK/AAB artifact
         if: success()
@@ -139,7 +144,8 @@ jobs:
 
       - name: iOS/Native compile
         run: |
-          ./gradlew iosApp:${{ env.IOS_TASK }} 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          gradle iosApp:${{ env.IOS_TASK }} 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
 
       - name: Upload iOS framework artifact
         if: success()
@@ -179,7 +185,8 @@ jobs:
 
       - name: Kotlin/Wasm web compile
         run: |
-          ./gradlew webApp:${{ env.WEB_TASK }} 2>&1 | tail -20
+          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
+          gradle webApp:${{ env.WEB_TASK }} 2>&1 | tail -20
 
       - name: Determine web output directory
         id: web-dir
