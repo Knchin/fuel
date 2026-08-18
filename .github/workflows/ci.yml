@@ -6,13 +6,6 @@ on:
   pull_request:
     branches: [main, develop]
 
-env:
-  JDK_VERSION: '17'
-  KMP_TASK: 'compileKotlin'
-  ANDROID_TASK: 'assembleDebug'
-  IOS_TASK: 'compileKotlinKotlin'
-  WEB_TASK: 'compileWasmJsDebug'
-
 jobs:
   kmp-validation:
     name: KMP Common Validation
@@ -24,52 +17,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK ${{ env.JDK_VERSION }}
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: ${{ env.JDK_VERSION }}
-          cache: gradle
+          java-version: '17'
+          cache: 'gradle'
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle*') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      - name: Try Gradle wrapper if available
-        run: |
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
-            ./gradlew shared:${{ env.KMP_TASK }} 2>&1 | tail -20
-          else
-            echo "No gradlew found, using system Gradle"
-          fi
-
-      - name: Fallback - Use system Gradle 8.14
-        if: failure()
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
-          gradle shared:${{ env.KMP_TASK }} 2>&1 | tail -20
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
       - name: KMP Compile (common/main)
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
-          gradle shared:${{ env.KMP_TASK }} 2>&1 | tail -20
+        run: ./gradlew shared:compileKotlin
 
       - name: Run unit tests (if any)
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
-          gradle shared:test 2>&1 | tail -30 || echo "No tests or test configuration differs"
+        run: ./gradlew shared:test 2>&1 | tail -30 || echo "No tests or test configuration differs"
 
       - name: Android compile check
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
-          gradle androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -20 || echo "Android build task issue, check configuration"
+        run: ./gradlew androidApp:assembleDebug 2>&1 | tail -20 || echo "Android build task issue, check configuration"
 
   android-build:
     name: Android Build
@@ -82,47 +50,23 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK ${{ env.JDK_VERSION }}
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: ${{ env.JDK_VERSION }}
-          cache: gradle
+          java-version: '17'
+          cache: 'gradle'
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-android-${{ runner.os }}-${{ hashFiles('**/gradle*') }}
-          restore-keys: |
-            gradle-android-${{ runner.os }}-
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Set up ANDROID SDK
         uses: android-actions/setup-android@v3
         with:
           api-level: 34
 
-      - name: Try Gradle wrapper if available
-        run: |
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
-            ./gradlew androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -30
-          else
-            echo "No gradlew found, using system Gradle"
-          fi
-
-      - name: Fallback - Use system Gradle 8.14
-        if: failure()
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
-          gradle androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -30
-
       - name: Android compile (debug)
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
-          gradle androidApp:${{ env.ANDROID_TASK }} 2>&1 | tail -30
+        run: ./gradlew androidApp:assembleDebug 2>&1 | tail -30
 
       - name: Upload APK/AAB artifact
         if: success()
@@ -148,25 +92,11 @@ jobs:
         with:
           xcode-version: "15.0"
 
-      - name: Try Gradle wrapper if available
-        run: |
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
-            ./gradlew iosApp:${{ env.IOS_TASK }} 2>&1 | tail -20
-          else
-            echo "No gradlew found, using system Gradle"
-          fi
-
-      - name: Fallback - Use system Gradle 8.14
-        if: failure()
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
-          gradle iosApp:${{ env.IOS_TASK }} 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: iOS/Native compile
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
-          gradle iosApp:${{ env.IOS_TASK }} 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
+        run: ./gradlew iosApp:compileKotlinKotlin 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
 
   web-build:
     name: Web Build
@@ -179,42 +109,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK ${{ env.JDK_VERSION }}
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: ${{ env.JDK_VERSION }}
-          cache: gradle
+          java-version: '17'
+          cache: 'gradle'
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-web-${{ runner.os }}-${{ hashFiles('**/gradle*') }}
-          restore-keys: |
-            gradle-web-${{ runner.os }}-
-
-      - name: Try Gradle wrapper if available
-        run: |
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
-            ./gradlew webApp:${{ env.WEB_TASK }} 2>&1 | tail -20
-          else
-            echo "No gradlew found, using system Gradle"
-          fi
-
-      - name: Fallback - Use system Gradle 8.14
-        if: failure()
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
-          gradle webApp:${{ env.WEB_TASK }} 2>&1 | tail -20 || echo "Web build task issue, check configuration"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Kotlin/Wasm web compile
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/gradle-8.14/bin:$PATH"
-          gradle webApp:${{ env.WEB_TASK }} 2>&1 | tail -20
+        run: ./gradlew webApp:compileWasmJsDebug 2>&1 | tail -20
 
       - name: Determine web output directory
         id: web-dir
