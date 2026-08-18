@@ -16,9 +16,6 @@ jobs:
     name: Supabase Backend Deploy
     runs-on: ubuntu-latest
     needs: web-build
-    defaults:
-      run:
-        working-directory: /workspace/fuel
 
     steps:
       - name: Checkout repository
@@ -79,9 +76,6 @@ jobs:
     name: Cloudflare Frontend Deploy
     runs-on: ubuntu-latest
     needs: web-build
-    defaults:
-      run:
-        working-directory: /workspace/fuel
 
     steps:
       - name: Checkout repository
@@ -122,14 +116,9 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
         run: |
-          # Find the web build output from the CI job artifact
-          # The web build produces static assets; deploy them
-          ls -la webApp/build/ 2>&1 || echo "Checking web build output"
-          # Deploy using wrangler
           npx wrangler publish webApp/build 2>&1 | tail -20 || echo "Wrangler publish step - checking output path"
 
       - name: Verify Cloudflare deployment
         if: success()
         run: |
           echo "Cloudflare deployment completed successfully"
-          # Could add a curl check or verification step here
