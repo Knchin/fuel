@@ -67,9 +67,17 @@ jobs:
 
       - name: Install Supabase CLI
         run: |
-          curl -fsSL https://supabase.com/cli/install.sh | sh
+          npm install -g supabase
           export PATH="$HOME/.supabase/bin:$PATH"
           supabase --version
+
+      - name: Cache Supabase CLI
+        uses: actions/cache@v4
+        with:
+          path: ~/.supabase
+          key: supabase-cli-${{ runner.os }}
+          restore-keys: |
+            supabase-cli-
 
       - name: Cache Supabase CLI
         uses: actions/cache@v4
