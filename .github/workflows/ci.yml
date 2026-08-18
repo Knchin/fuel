@@ -272,6 +272,8 @@ cloudflare-pages-deploy:
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           projectName: france-fuel-station
           directory: webApp/build
+          projectName: france-fuel-station
+          directory: webApp/build
 
       - name: Verify Pages deployment
         run: |
