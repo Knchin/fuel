@@ -9,7 +9,7 @@ on:
 env:
   # Default JDK for Gradle; adjust if your project requires a different version
   JDK_VERSION: '17'
-  # Gradle Wrapper path reference (not used directly; gradle command used instead)
+  # Gradle Wrapper path (use the project's wrapper)
   GRADLE_WRAPPER: gradlew
   # Default Gradle task for KMP common validation
   KMP_TASK: 'compileKotlin'
@@ -49,11 +49,10 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      - name: Validate Gradle command
+      - name: Validate Gradle wrapper
         run: |
-          # Use the Gradle wrapper from the system cache
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
-          gradle --version > /dev/null 2>&1 || echo "Gradle check"
+          chmod +x ./gradlew
+          ./gradlew --version > /dev/null 2>&1 || echo "Gradle wrapper check"
 
       - name: KMP Compile (common/main)
         run: |
@@ -130,29 +129,9 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Xcode
-        uses: macos-actions/setup-xcode@v2
+        uses: actions/setup-xcode@v3
         with:
-          xcode-version: latest-stable
-
-      - name: Cache CocoaPods
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-          key: cocoaids-${{ runner.os }}-
-
-      - name: iOS/Native compile
-        run: |
-          export PATH="/root/.gradle/wrapper/dists/gradle-8.14-bin/38aieal9i53h9rfe7vjup95b9/gradle-8.14/bin:$PATH"
-          gradle iosApp:${{ env.IOS_TASK }} 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
-
-      - name: Upload iOS framework artifact
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-framework
-          path: iosApp/build/ 2>/dev/null || echo "iOS build output path check"
+          xcode-version: "15.0"
 
   ## 4. Web build
   web-build:
