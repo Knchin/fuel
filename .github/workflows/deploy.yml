@@ -7,6 +7,12 @@ on:
     branches: [main]
 
 jobs:
+  init:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize deployment
+        run: echo "Deployment initialized"
+
   supabase-deploy:
     name: Supabase Backend Deploy
     runs-on: ubuntu-latest
