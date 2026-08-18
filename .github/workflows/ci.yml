@@ -128,13 +128,6 @@ jobs:
           echo "WEB_OUTPUT=$(ls -d webApp/build/wasmJsDistribution 2>/dev/null || echo webApp/build)" >> $GITHUB_OUTPUT
           echo "Distribution checked"
 
-  init:
-    name: Initialize Deployment
-    runs-on: ubuntu-latest
-    steps:
-      - name: Initialize deployment
-        run: echo "Deployment initialized"
-
   supabase-deploy:
     name: Supabase Backend Deploy
     runs-on: ubuntu-latest
