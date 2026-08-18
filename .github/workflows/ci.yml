@@ -272,8 +272,6 @@ jobs:
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           projectName: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
           directory: webApp/build
-          projectName: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
-          directory: webApp/build
 
       - name: Verify Pages deployment
         run: |
