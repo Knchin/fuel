@@ -27,20 +27,17 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Grant execute permission for gradlew (if exists)
-        run: |
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
-          fi
+      - name: Ensure gradle is available (setup-gradle action handles this)
+        run: echo "Gradle will be set up by the action"
 
       - name: KMP Compile (common/main)
-        run: ./gradlew shared:compileKotlin
+        run: gradle shared:compileKotlin
 
       - name: Run unit tests (if any)
-        run: ./gradlew shared:test 2>&1 | tail -30 || echo "No tests or test configuration differs"
+        run: gradle shared:test 2>&1 | tail -30 || echo "No tests or test configuration differs"
 
       - name: Android compile check
-        run: ./gradlew androidApp:assembleDebug 2>&1 | tail -20 || echo "Android build task issue, check configuration"
+        run: gradle androidApp:assembleDebug 2>&1 | tail -20 || echo "Android build task issue, check configuration"
 
   android-build:
     name: Android Build
@@ -69,7 +66,7 @@ jobs:
           api-level: 34
 
       - name: Android compile (debug)
-        run: ./gradlew androidApp:assembleDebug 2>&1 | tail -30
+        run: gradle androidApp:assembleDebug 2>&1 | tail -30
 
       - name: Upload APK/AAB artifact
         if: success()
@@ -99,7 +96,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: iOS/Native compile
-        run: ./gradlew iosApp:compileKotlinKotlin 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
+        run: gradle iosApp:compileKotlinKotlin 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
 
   web-build:
     name: Web Build
@@ -123,7 +120,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Kotlin/Wasm web compile
-        run: ./gradlew webApp:compileWasmJsDebug 2>&1 | tail -20
+        run: gradle webApp:compileWasmJsDebug 2>&1 | tail -20
 
       - name: Determine web output directory
         id: web-dir

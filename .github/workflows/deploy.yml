@@ -48,7 +48,7 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          ./gradlew --version
+          gradle --version
 
       - name: Apply database migrations
         if: success()
@@ -117,7 +117,7 @@ jobs:
           cat /tmp/wrangler.toml
 
       - name: Kotlin/Wasm web compile
-        run: ./gradlew webApp:compileWasmJsDebug 2>&1 | tail -20
+        run: gradle webApp:compileWasmJsDebug 2>&1 | tail -20
 
       - name: Deploy to Cloudflare Workers Static Assets
         if: success()
