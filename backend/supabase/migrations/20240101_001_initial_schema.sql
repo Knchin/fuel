@@ -1,5 +1,5 @@
 -- Migration: 001_initial_schema.sql
--- Initial database schema for France Fuel Station & Price Comparison Application
+-- Initial database schema for Fuel Station & Price Comparison Application
 -- Uses PostGIS for geographic queries
 
 -- Enable PostGIS extension

@@ -1,4 +1,4 @@
-# France Fuel Station & Price Comparison Application
+# Fuel Station & Price Comparison Application
 
 A Kotlin Multiplatform application that helps users find the best fuel prices at stations near them in France, using official government fuel price data.
 
