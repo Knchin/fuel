@@ -5,6 +5,15 @@
 -- Enable PostGIS extension
 CREATE EXTENSION IF NOT EXISTS postgis;
 
+-- Custom ENUM type for price freshness
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'freshness_state') THEN
+        CREATE TYPE freshness_state AS ENUM ('FRESH', 'AGING', 'STALE', 'VERY_STALE');
+    END IF;
+END
+$$;
+
 -- ============================================================
 -- stations table
 -- ============================================================

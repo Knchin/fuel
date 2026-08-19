@@ -1,39 +1,5 @@
 -- Additional database functions for the ingestion pipeline
 
--- Function to atomic publish staged data
-CREATE OR REPLACE FUNCTION atomic_publish_staging(p_staging_id UUID)
-RETURNS UUID AS $$
-DECLARE
-    new_sync_id UUID;
-BEGIN
-    -- 1. Update fuel_prices from staging (upsert based on unique constraint)
-    INSERT INTO fuel_prices (station_id, fuel_type, price_per_liter, reported_at, availability, rupture_type, rupture_started_at, data_synchronized_at)
-    SELECT station_id, fuel_type, price_per_liter, reported_at, availability, rupture_type, rupture_started_at, now()
-    FROM staging_fuel_prices
-    ON CONFLICT (station_id, fuel_type) DO UPDATE
-    SET price_per_liter = EXCLUDED.price_per_liter,
-        reported_at = EXCLUDED.reported_at,
-        availability = EXCLUDED.availability,
-        rupture_type = EXCLUDED.rupture_type,
-        rupture_started_at = EXCLUDED.rupture_started_at,
-        data_synchronized_at = now();
-    
-    -- 2. Update stations from staging if needed
-    UPDATE stations s
-    SET last_seen_at = now(),
-        data_synchronized_at = now(),
-        active = true
-    FROM staging_fuel_spatial sfs
-    WHERE s.source_id = sfs.source_id
-    AND s.data_synchronized_at < now() - interval '24 hours';
-    
-    -- 3. Record the synchronization run as completed
-    -- This is handled by the Edge Function, not the database
-    
-    RETURN (SELECT data_synchronized_at FROM stations WHERE source_id = 'last_sync');
-END;
-$$ LANGUAGE plpgsql;
-
 -- Function to get nearby stations with filtering
 CREATE OR REPLACE FUNCTION get_nearby_stations_full(
     IN p_latitude DOUBLE PRECISION,
@@ -55,7 +21,7 @@ RETURNS TABLE (
     availability VARCHAR(50),
     reported_at TIMESTAMP WITH TIME ZONE,
     data_synchronized_at TIMESTAMP WITH TIME ZONE,
-    freshness FreshnessState
+    freshness freshness_state
 )
 LANGUAGE plpgsql
 STABLE
@@ -83,10 +49,10 @@ BEGIN
         fp.data_synchronized_at,
         -- Calculate freshness
         CASE 
-            WHEN EXTRACT(EPOCH FROM (now() - fp.reported_at)) / 3600 <= 2 THEN 'FRESH'::text
-            WHEN EXTRACT(EPOCH FROM (now() - fp.reported_at)) / 3600 <= 6 THEN 'AGING'::text
-            WHEN EXTRACT(EPOCH FROM (now() - fp.reported_at)) / 3600 <= 24 THEN 'STALE'::text
-            ELSE 'VERY_STALE'::text
+            WHEN EXTRACT(EPOCH FROM (now() - fp.reported_at)) / 3600 <= 2 THEN 'FRESH'::freshness_state
+            WHEN EXTRACT(EPOCH FROM (now() - fp.reported_at)) / 3600 <= 6 THEN 'AGING'::freshness_state
+            WHEN EXTRACT(EPOCH FROM (now() - fp.reported_at)) / 3600 <= 24 THEN 'STALE'::freshness_state
+            ELSE 'VERY_STALE'::freshness_state
         END AS freshness
     FROM stations s
     JOIN fuel_prices fp ON fp.station_id = s.id

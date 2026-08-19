@@ -1,17 +1,6 @@
 -- Migration: 003_staging_and_gnv.sql
 -- Staging tables for atomic ingestion, GNV stations, viewport/search helpers,
--- sync health view, and the FreshnessState type.
-
--- ============================================================
--- Custom ENUM type for price freshness
--- ============================================================
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'freshness_state') THEN
-        CREATE TYPE freshness_state AS ENUM ('FRESH', 'AGING', 'STALE', 'VERY_STALE');
-    END IF;
-END
-$$;
+-- and sync health view.
 
 -- ============================================================
 -- staging_fuel_prices table
@@ -111,6 +100,38 @@ CREATE POLICY "anon_read_gnv_stations" ON gnv_stations
     FOR SELECT TO anon USING (true);
 
 -- Staging tables are service_role only (no anon access)
+
+-- ============================================================
+-- atomic_publish_staging: upsert staged prices into live table
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION atomic_publish_staging(p_staging_id UUID)
+RETURNS VOID AS $$
+BEGIN
+    -- 1. Update fuel_prices from staging (upsert based on unique constraint)
+    INSERT INTO fuel_prices (station_id, fuel_type, price_per_liter, reported_at, availability, rupture_type, rupture_started_at, data_synchronized_at)
+    SELECT station_id, fuel_type, price_per_liter, reported_at, availability, rupture_type, rupture_started_at, now()
+    FROM staging_fuel_prices
+    WHERE staging_id = p_staging_id
+    ON CONFLICT (station_id, fuel_type) DO UPDATE
+    SET price_per_liter = EXCLUDED.price_per_liter,
+        reported_at = EXCLUDED.reported_at,
+        availability = EXCLUDED.availability,
+        rupture_type = EXCLUDED.rupture_type,
+        rupture_started_at = EXCLUDED.rupture_started_at,
+        data_synchronized_at = now();
+    
+    -- 2. Update stations last_seen_at from staging spatial
+    UPDATE stations s
+    SET last_seen_at = now(),
+        data_synchronized_at = now(),
+        active = true
+    FROM staging_fuel_spatial sfs
+    WHERE sfs.staging_id = p_staging_id
+      AND s.source_id = sfs.source_id
+      AND s.data_synchronized_at < now() - interval '1 hour';
+END;
+$$ LANGUAGE plpgsql;
 
 -- ============================================================
 -- viewport_stations: return stations within a bounding box
