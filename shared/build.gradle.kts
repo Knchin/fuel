@@ -3,12 +3,26 @@ plugins {
 }
 
 kotlin {
+    jvm()
+
     js(IR) {
         browser()
     }
 
     sourceSets {
         val commonMain by getting {
+            dependencies {
+            }
+        }
+
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+
+        val jvmMain by getting {
+            dependsOn(commonMain)
             dependencies {
                 implementation("io.ktor:ktor-client-core:2.3.7")
                 implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
@@ -17,10 +31,8 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
+        val jvmTest by getting {
+            dependsOn(commonTest)
         }
 
         val jsMain by getting {
