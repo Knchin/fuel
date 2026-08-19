@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS stations (
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,
     geom GEOGRAPHY(POINT, 4326) GENERATED ALWAYS AS (
-        POINT(longitude latitude)
+        ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography
     ) STORED NOT NULL,
     presence_type VARCHAR(50),
     opening_hours TEXT,

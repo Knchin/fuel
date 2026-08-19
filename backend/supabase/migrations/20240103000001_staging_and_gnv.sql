@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS staging_fuel_spatial (
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,
     geom GEOGRAPHY(POINT, 4326) GENERATED ALWAYS AS (
-        POINT(longitude latitude)
+        ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography
     ) STORED NOT NULL,
     UNIQUE(staging_id, source_id)
 );
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS gnv_stations (
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,
     geom GEOGRAPHY(POINT, 4326) GENERATED ALWAYS AS (
-        POINT(longitude latitude)
+        ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography
     ) STORED NOT NULL,
     operator TEXT,
     capacity_kg NUMERIC(10, 2),
