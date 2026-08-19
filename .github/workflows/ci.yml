@@ -250,6 +250,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
         run: |
           set -eo pipefail
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
@@ -260,11 +261,16 @@ jobs:
             echo "::error::CLOUDFLARE_ACCOUNT_ID variable is not set. Add it in repo Settings > Variables > Actions"
             exit 1
           fi
+          if [ -z "$CLOUDFLARE_PROJECT_NAME" ]; then
+            echo "::error::CLOUDFLARE_PROJECT_NAME variable is not set. Add it in repo Settings > Variables > Actions"
+            exit 1
+          fi
           echo "Installing wrangler..."
           npm install -g wrangler@3
+          echo "Creating Pages project if it doesn't exist..."
+          wrangler pages project create "$CLOUDFLARE_PROJECT_NAME" --production-branch=master || echo "Project may already exist, continuing..."
           echo "Deploying to Cloudflare Pages..."
-          cd /home/runner/work/fuel/fuel
-          wrangler pages deploy web-dist --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME || 'fuelmapsy' }} --branch=master
+          wrangler pages deploy web-dist --project-name="$CLOUDFLARE_PROJECT_NAME" --branch=master --commit-dirty=true
 
       - name: Verify deployment
         if: success()
