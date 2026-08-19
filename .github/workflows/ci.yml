@@ -120,12 +120,12 @@ jobs:
           gradle-version: '8.14'
 
       - name: Kotlin/JS web distribution
-        run: gradle clean webApp:jsBrowserDistribution --info 2>&1 | tail -30
+        run: gradle clean webApp:jsBrowserProductionWebpack --info 2>&1 | tail -30
 
       - name: Locate web output directory
         id: web-dir
         run: |
-          for d in webApp/build/distributions webApp/build/dist/wasmJs/production webApp/build/wasmJsDistribution; do
+          for d in webApp/build/dist/js/productionExecutable webApp/build/distributions webApp/build/dist/js/developmentExecutable; do
             if [ -d "$d" ] && [ "$(ls -A "$d" 2>/dev/null)" ]; then
               echo "Found output at $d"
               echo "WEB_OUTPUT=$d" >> $GITHUB_OUTPUT
