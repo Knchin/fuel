@@ -1,3 +1,7 @@
-plugins {
-    kotlin("multiplatform") version "1.8.22"
+allprojects {
+    repositories {
+        mavenCentral()
+        google()
+        gradlePluginPortal()
+    }
 }

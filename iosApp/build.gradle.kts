@@ -1,10 +1,9 @@
 plugins {
-    kotlin("ios") version "1.8.22"
+    kotlin("multiplatform")
 }
 
 kotlin {
-    iosXcode {
-        useFramework = "shared"
-        deploymentTarget = 15
-    }
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 }

@@ -1,6 +1,6 @@
 .gradle/
-/workspace/fuel/.gradle/
-/workspace/fuel/build/
-/workspace/fuel/local.properties
-/*.klib
+build/
+local.properties
+*.klib
 *.jar
+kotlin-js-store/

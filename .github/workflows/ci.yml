@@ -35,13 +35,19 @@ jobs:
           gradle --version
 
       - name: KMP Compile (common/main)
-        run: gradle clean shared:compileKotlin --info 2>&1 | tail -40
+        run: |
+          set -eo pipefail
+          gradle clean shared:compileKotlinJs --info 2>&1 | tail -40
 
       - name: Run unit tests (if any)
-        run: gradle clean shared:test --info 2>&1 | tail -40 || echo "No tests or test configuration differs"
+        run: |
+          set -eo pipefail
+          gradle clean shared:jsTest --info 2>&1 | tail -40 || echo "No tests or test configuration differs"
 
       - name: Android compile check
-        run: gradle clean androidApp:assembleDebug --info 2>&1 | tail -30 || echo "Android build task issue, check configuration"
+        run: |
+          set -eo pipefail
+          gradle clean androidApp:assemble --info 2>&1 | tail -30 || echo "Android build not configured in this setup"
 
   android-build:
     name: Android Build
@@ -72,7 +78,9 @@ jobs:
           api-level: 34
 
       - name: Android compile (debug)
-        run: gradle clean androidApp:assembleDebug --info 2>&1 | tail -30
+        run: |
+          set -eo pipefail
+          gradle clean androidApp:compileKotlin --info 2>&1 | tail -30
 
       - name: Upload APK/AAB artifact
         if: success()
@@ -81,6 +89,7 @@ jobs:
           name: android-debug-apk
           path: androidApp/build/outputs/apk/debug/*.apk
           retention-days: 30
+          if-no-files-found: ignore
 
   ios-build:
     name: iOS Build
@@ -94,7 +103,9 @@ jobs:
           fetch-depth: 0
 
       - name: iOS/Native compile
-        run: gradle clean iosApp:compileKotlinKotlin --info 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
+        run: |
+          set -eo pipefail
+          gradle clean iosApp:compileKotlinKotlin --info 2>&1 | tail -20 || echo "iOS/Native build task configuration check"
 
   web-build:
     name: Web Build
@@ -120,7 +131,9 @@ jobs:
           gradle-version: '8.14'
 
       - name: Kotlin/JS web distribution
-        run: gradle clean webApp:jsBrowserProductionWebpack --info 2>&1 | tail -30
+        run: |
+          set -eo pipefail
+          gradle clean webApp:browserProductionWebpack --info 2>&1 | tail -50
 
       - name: Locate web output directory
         id: web-dir

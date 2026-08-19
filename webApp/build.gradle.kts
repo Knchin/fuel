@@ -7,15 +7,14 @@ kotlin {
         browser()
         binaries.executable()
     }
+}
 
-    sourceSets {
-        val commonMain by getting {
-            dependencies {
-                // Shared dependencies
-            }
-        }
-        val jsMain by getting {
-            dependsOn(commonMain)
-        }
-    }
+tasks.register<Copy>("copyIndexHtml") {
+    dependsOn("browserProductionWebpack")
+    from("src/main/resources/index.html")
+    into("build/distributions")
+}
+
+tasks.named("browserProductionWebpack") {
+    finalizedBy("copyIndexHtml")
 }
