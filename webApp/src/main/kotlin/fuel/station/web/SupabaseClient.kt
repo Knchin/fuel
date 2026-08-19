@@ -75,50 +75,50 @@ suspend fun searchStations(query: String): Array<Station> {
 }
 
 private fun parseStation(raw: dynamic): Station {
-    val pricesArr = js("raw.fuel_prices") as? Array<dynamic>
-    val prices: Array<FuelPrice>? = if (pricesArr != null) {
+    val pricesArr = raw.fuel_prices as? Array<dynamic>
+    val prices: Array<FuelPrice>? = if (pricesArr != null && js("Array.isArray(pricesArr)") as Boolean) {
         pricesArr.map { fp ->
             FuelPrice(
-                fuelType = js("fp.fuel_type || ''") as String,
+                fuelType = (js("fp.fuel_type") as? String) ?: "",
                 pricePerLiter = (js("fp.price_per_liter") as? Number)?.toDouble() ?: 0.0,
-                reportedAt = js("fp.reported_at || ''") as String,
-                availability = js("fp.availability || 'disponible'") as String,
-                ruptureType = js("fp.rupture_type || null") as String?
+                reportedAt = (js("fp.reported_at") as? String) ?: "",
+                availability = (js("fp.availability") as? String) ?: "disponible",
+                ruptureType = js("fp.rupture_type") as? String?
             )
         }.toTypedArray()
     } else null
 
     return Station(
-        id = js("raw.id != null ? String(raw.id) : ''") as String,
-        sourceId = js("raw.source_id != null ? String(raw.source_id) : ''") as String,
-        address = js("raw.address || null") as String?,
-        postalCode = js("raw.postal_code || null") as String?,
-        city = js("raw.city || null") as String?,
+        id = (js("raw.id") as? String) ?: "",
+        sourceId = (js("raw.source_id") as? String) ?: "",
+        address = js("raw.address") as? String?,
+        postalCode = js("raw.postal_code") as? String?,
+        city = js("raw.city") as? String?,
         latitude = (js("raw.latitude") as? Number)?.toDouble() ?: 0.0,
         longitude = (js("raw.longitude") as? Number)?.toDouble() ?: 0.0,
-        presenceType = js("raw.presence_type || null") as String?,
-        openingHours = js("raw.opening_hours || null") as String?,
-        services = js("raw.services || null") as String?,
-        source = js("raw.source || ''") as String,
-        active = js("raw.active === true || raw.active === 'true'") as Boolean,
+        presenceType = js("raw.presence_type") as? String?,
+        openingHours = js("raw.opening_hours") as? String?,
+        services = js("raw.services") as? String?,
+        source = (js("raw.source") as? String) ?: "",
+        active = js("raw.active === true") as Boolean,
         fuelPrices = prices
     )
 }
 
 private fun parseStationFromSearch(raw: dynamic): Station {
     return Station(
-        id = js("raw.id != null ? String(raw.id) : ''") as String,
-        sourceId = js("raw.source_id != null ? String(raw.source_id) : ''") as String,
-        address = js("raw.address || null") as String?,
-        postalCode = js("raw.postal_code || null") as String?,
-        city = js("raw.city || null") as String?,
+        id = (js("raw.id") as? String) ?: "",
+        sourceId = (js("raw.source_id") as? String) ?: "",
+        address = js("raw.address") as? String?,
+        postalCode = js("raw.postal_code") as? String?,
+        city = js("raw.city") as? String?,
         latitude = (js("raw.latitude") as? Number)?.toDouble() ?: 0.0,
         longitude = (js("raw.longitude") as? Number)?.toDouble() ?: 0.0,
-        presenceType = js("raw.presence_type || null") as String?,
-        openingHours = js("raw.opening_hours || null") as String?,
-        services = js("raw.services || null") as String?,
-        source = js("raw.source || ''") as String,
-        active = js("raw.active === true || raw.active === 'true'") as Boolean,
+        presenceType = js("raw.presence_type") as? String?,
+        openingHours = js("raw.opening_hours") as? String?,
+        services = js("raw.services") as? String?,
+        source = (js("raw.source") as? String) ?: "",
+        active = js("raw.active === true") as Boolean,
         fuelPrices = null
     )
 }

@@ -10,6 +10,10 @@ private const val DEFAULT_ZOOM = 12
 private const val VIEWPORT_ZOOM_THRESHOLD = 11
 private const val DEBOUNCE_MS = 300
 
+fun escapeHtml(s: String): String {
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;")
+}
+
 fun formatPrice(price: Double): String {
     val s = price.toString()
     val parts = s.split(".")
@@ -71,7 +75,7 @@ class MapApp {
     }
 
     private fun setupMap() {
-        map = L.map("map", js("({})")).setView(js("arrayOf(DEFAULT_LAT, DEFAULT_LNG)"), DEFAULT_ZOOM)
+        map = L.map("map", js("({})")).setView(arrayOf(DEFAULT_LAT, DEFAULT_LNG), DEFAULT_ZOOM)
         L.tileLayer(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             js("({attribution: '\\u00a9 OpenStreetMap contributors', maxZoom: 19})")
@@ -80,7 +84,7 @@ class MapApp {
     }
 
     private fun setupMoveendListener() {
-        js("map.on('moveend', function() { window._fuelApp.onMapMoveEnd() })")
+        map.on("moveend", { onMapMoveEnd() })
     }
 
     fun onMapMoveEnd() {
@@ -89,7 +93,7 @@ class MapApp {
     }
 
     fun onMoveEndDebounced() {
-        val zoom = js("map.getZoom()") as Int
+        val zoom = map.getZoom() as Int
         if (zoom >= VIEWPORT_ZOOM_THRESHOLD) {
             fetchAndRenderViewport()
         } else {
@@ -102,13 +106,13 @@ class MapApp {
         isViewportLoading = true
         showViewportLoading()
 
-        val bounds = js("map.getBounds()")
-        val ne = js("bounds.getNorthEast()")
-        val sw = js("bounds.getSouthWest()")
-        val minLat = js("sw.lat") as Double
-        val minLng = js("sw.lng") as Double
-        val maxLat = js("ne.lat") as Double
-        val maxLng = js("ne.lng") as Double
+        val bounds = map.getBounds()
+        val ne = bounds.getNorthEast()
+        val sw = bounds.getSouthWest()
+        val minLat = sw.lat as Double
+        val minLng = sw.lng as Double
+        val maxLat = ne.lat as Double
+        val maxLng = ne.lng as Double
 
         val fuelType = if (selectedFilters.size == 1) selectedFilters.first() else null
 
@@ -169,7 +173,7 @@ class MapApp {
     }
 
     private fun refreshView() {
-        val zoom = js("map.getZoom()") as Int
+        val zoom = map.getZoom() as Int
         if (zoom >= VIEWPORT_ZOOM_THRESHOLD) {
             fetchAndRenderViewport()
         } else {
@@ -236,7 +240,7 @@ class MapApp {
                     val item = js("document.createElement('div')")
                     js("item.className = 'search-result-item'")
                     val cityPart = station.city?.let { ", $it" } ?: ""
-                    val label = "${station.displayName()}$cityPart"
+                    val label = "${escapeHtml(station.displayName())}$cityPart"
                     js("item.textContent = label")
                     js("(function(s) { item.addEventListener('mousedown', function(e) { e.preventDefault(); window._flyToStation(s) }) })(station)")
                     js("resultsDiv.appendChild(item)")
@@ -250,7 +254,7 @@ class MapApp {
     fun flyToStation(station: Station) {
         val lat = station.latitude
         val lng = station.longitude
-        map.flyTo(js("arrayOf(lat, lng)"), 15, js("({duration: 1.5})"))
+        map.flyTo(arrayOf(lat, lng), 15, js("({duration: 1.5})"))
         showStationDetail(station)
     }
 
@@ -270,11 +274,11 @@ class MapApp {
         hideLoading()
         val lat = js("pos.coords.latitude") as Double
         val lng = js("pos.coords.longitude") as Double
-        map.flyTo(js("arrayOf(lat, lng)"), 13, js("({duration: 1.5})"))
+        map.flyTo(arrayOf(lat, lng), 13, js("({duration: 1.5})"))
         if (userMarker != null) {
             map.removeLayer(userMarker)
         }
-        userMarker = L.circleMarker(js("arrayOf(lat, lng)"), js("({radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1.0})")).addTo(map)
+        userMarker = L.circleMarker(arrayOf(lat, lng), js("({radius: 8, fillColor: '#3b82f6', color: '#ffffff', weight: 3, fillOpacity: 1.0})")).addTo(map)
     }
 
     fun onGeoError(err: dynamic) {
@@ -328,14 +332,13 @@ class MapApp {
             val color = priceColor(bestPrice.pricePerLiter, station)
             val lat = station.latitude
             val lng = station.longitude
-            val marker = L.circleMarker(js("arrayOf(lat, lng)"), js("({radius: 7, fillColor: color, color: '#ffffff', weight: 2, fillOpacity: 0.85})"))
+            val marker = L.circleMarker(arrayOf(lat, lng), js("({radius: 7, fillColor: color, color: '#ffffff', weight: 2, fillOpacity: 0.85})"))
 
             val tooltipText = "${bestPrice.fuelType}: ${formatPrice(bestPrice.pricePerLiter)} \u20ac/L"
             marker.bindTooltip(tooltipText, js("({permanent: false, direction: 'top'})"))
 
-            marker.on("click", {
-                showStationDetail(station)
-            })
+            val s = station
+            marker.on("click", js("function() { window._fuelApp.showStationDetail(s) }"))
 
             marker.addTo(map)
             markers.add(marker)
@@ -346,7 +349,7 @@ class MapApp {
 
         currentMarkers = markers.toTypedArray()
 
-        val zoom = js("map.getZoom()") as Int
+        val zoom = map.getZoom() as Int
         if (zoom >= VIEWPORT_ZOOM_THRESHOLD) {
             setElementText("station-count", "$count stations (zone)")
         } else {
@@ -396,12 +399,12 @@ class MapApp {
         }
     }
 
-    private fun showStationDetail(station: Station) {
+    fun showStationDetail(station: Station) {
         val content = getElementById("detail-content") ?: return
 
         val html = StringBuilder()
         html.append("<div class='detail-header'>")
-        html.append("<h2>${station.displayName()}</h2>")
+        html.append("<h2>${escapeHtml(station.displayName())}</h2>")
         html.append("<button id='detail-close' class='detail-close-btn'>&times;</button>")
         html.append("</div>")
 
@@ -410,7 +413,7 @@ class MapApp {
         station.postalCode?.let { locationParts.add(it) }
         station.city?.let { locationParts.add(it) }
         if (locationParts.isNotEmpty()) {
-            html.append("<div class='detail-location'>${locationParts.joinToString(" ")}</div>")
+            html.append("<div class='detail-location'>${escapeHtml(locationParts.joinToString(" "))}</div>")
         }
 
         if (station.fuelPrices != null && station.fuelPrices.isNotEmpty()) {
@@ -422,7 +425,7 @@ class MapApp {
                 val avail = if (price.availability == "indisponible") " <span class='unavailable'>Indisponible</span>" else ""
                 val priceStr = if (price.pricePerLiter > 0) formatPrice(price.pricePerLiter) else "N/A"
                 html.append("<div class='price-row'>")
-                html.append("<span class='price-fuel'>${price.fuelType}</span>")
+                html.append("<span class='price-fuel'>${escapeHtml(price.fuelType)}</span>")
                 html.append("<span class='price-value $freshness'>$priceStr \u20ac/L$avail</span>")
                 html.append("<span class='price-date'>${formatDate(price.reportedAt)}</span>")
                 html.append("</div>")
@@ -433,14 +436,14 @@ class MapApp {
         if (station.openingHours != null && station.openingHours!!.isNotEmpty()) {
             html.append("<div class='detail-info'>")
             html.append("<h3>Horaires</h3>")
-            html.append("<p>${station.openingHours}</p>")
+            html.append("<p>${escapeHtml(station.openingHours!!)}</p>")
             html.append("</div>")
         }
 
         if (station.services != null && station.services!!.isNotEmpty()) {
             html.append("<div class='detail-info'>")
             html.append("<h3>Services</h3>")
-            html.append("<p>${station.services}</p>")
+            html.append("<p>${escapeHtml(station.services!!)}</p>")
             html.append("</div>")
         }
 
