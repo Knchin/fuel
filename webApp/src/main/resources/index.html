@@ -1,12 +1,467 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fuel Station Comparison</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prix Carburants France - Carte interactive</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛽</text></svg>">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+        }
+
+        /* Top bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Search */
+        .search-container {
+            position: relative;
+            flex: 0 1 320px;
+            min-width: 200px;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 8px 12px 8px 34px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0'/%3E%3C/svg%3E") no-repeat 10px center;
+        }
+
+        #search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        #search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        #search-results {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 280px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            z-index: 1001;
+        }
+
+        .search-result-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #374151;
+        }
+
+        .search-result-item:hover {
+            background: #f0f5ff;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Filter bar */
+        .filter-container {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .filter-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        #filter-bar {
+            display: flex;
+            gap: 6px;
+            padding: 2px 0;
+        }
+
+        .filter-btn {
+            flex-shrink: 0;
+            padding: 6px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #6b7280;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .filter-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .filter-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        /* Station count */
+        #station-count {
+            flex-shrink: 0;
+            font-size: 12px;
+            color: #6b7280;
+            white-space: nowrap;
+            padding: 4px 8px;
+        }
+
+        /* Locate button */
+        #locate-btn {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: background 0.2s;
+        }
+
+        #locate-btn:hover {
+            background: #f3f4f6;
+        }
+
+        /* Detail panel */
+        #detail-panel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            max-width: 90vw;
+            height: 100vh;
+            background: white;
+            z-index: 1100;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+
+        #detail-panel.open {
+            right: 0;
+        }
+
+        .detail-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        .detail-header h2 {
+            flex: 1;
+            font-size: 18px;
+            color: #111827;
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        .detail-close-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f3f4f6;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .detail-close-btn:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .detail-location {
+            padding: 12px 20px;
+            font-size: 14px;
+            color: #6b7280;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .detail-prices {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .detail-prices h3,
+        .detail-info h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .price-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f9fafb;
+            gap: 8px;
+        }
+
+        .price-row:last-child {
+            border-bottom: none;
+        }
+
+        .price-fuel {
+            flex: 1;
+            font-weight: 500;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .price-value {
+            font-weight: 600;
+            font-size: 14px;
+            color: #111827;
+        }
+
+        .price-value.fresh {
+            color: #16a34a;
+        }
+
+        .price-value.aging {
+            color: #ca8a04;
+        }
+
+        .price-value.stale {
+            color: #dc2626;
+        }
+
+        .price-date {
+            font-size: 11px;
+            color: #9ca3af;
+            min-width: 100px;
+            text-align: right;
+        }
+
+        .unavailable {
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .detail-info {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .detail-info p {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .directions-btn {
+            display: block;
+            margin: 20px;
+            padding: 12px 20px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .directions-btn:hover {
+            background: #2563eb;
+        }
+
+        /* Loading overlay */
+        #loading-overlay {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.85);
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #loading-text {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* Error message */
+        #error-message {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #dc2626;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 2001;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        /* Leaflet overrides */
+        .leaflet-control-zoom {
+            margin-top: 60px !important;
+        }
+
+        @media (max-width: 640px) {
+            .top-bar {
+                flex-wrap: wrap;
+                padding: 6px 8px;
+                gap: 6px;
+            }
+
+            .search-container {
+                flex: 1 1 100%;
+                order: -1;
+            }
+
+            #station-count {
+                display: none;
+            }
+
+            #detail-panel {
+                top: auto;
+                bottom: 0;
+                right: 0;
+                width: 100%;
+                max-width: 100%;
+                height: 60vh;
+                border-radius: 16px 16px 0 0;
+                transition: bottom 0.3s ease;
+                transform: translateY(100%);
+            }
+
+            #detail-panel.open {
+                transform: translateY(0);
+                bottom: 0;
+            }
+
+            .leaflet-control-zoom {
+                margin-top: 140px !important;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="top-bar">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Rechercher une ville ou une adresse...">
+            <div id="search-results"></div>
+        </div>
+        <div class="filter-container">
+            <div id="filter-bar"></div>
+        </div>
+        <span id="station-count"></span>
+        <button id="locate-btn" title="Me localiser">&#9737;</button>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="detail-panel">
+        <div id="detail-content"></div>
+    </div>
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text">Chargement...</div>
+    </div>
+
+    <div id="error-message"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
     <script src="webApp.js"></script>
 </body>
 </html>
