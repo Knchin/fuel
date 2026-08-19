@@ -2,20 +2,21 @@ package fuel.station.web
 
 import kotlinx.coroutines.await
 
-private const val SUPABASE_URL = "https://uyeipadtsvbtrvtimotz.supabase.co"
-private const val SUPABASE_ANON_KEY = "sb_publishable_9JfGTlFSJf4gdS7Bg5Bl5w_KsUtHWn4"
+private fun getSupabaseUrl(): String = js("window.FUEL_CONFIG.SUPABASE_URL") as String
+private fun getSupabaseKey(): String = js("window.FUEL_CONFIG.SUPABASE_ANON_KEY") as String
 
 private fun supabaseHeaders(): dynamic {
+    val key = getSupabaseKey()
     val h = js("({})")
-    js("h.apikey = 'sb_publishable_9JfGTlFSJf4gdS7Bg5Bl5w_KsUtHWn4'")
-    js("h['Authorization'] = 'Bearer sb_publishable_9JfGTlFSJf4gdS7Bg5Bl5w_KsUtHWn4'")
+    js("h.apikey = key")
+    js("h['Authorization'] = 'Bearer ' + key")
     js("h['Content-Type'] = 'application/json'")
     js("h['Prefer'] = 'return=representation'")
     return h
 }
 
 suspend fun fetchStations(lat: Double, lng: Double, radiusKm: Double): Array<Station> {
-    val rpcUrl = "$SUPABASE_URL/rest/v1/rpc/get_nearby_stations_full"
+    val rpcUrl = "${getSupabaseUrl()}/rest/v1/rpc/get_nearby_stations_full"
     val body = js("JSON.stringify({p_latitude: lat, p_longitude: lng, p_radius_km: radiusKm})")
     val h = supabaseHeaders()
     val opts = js("({method: 'POST', headers: h, body: body})")
@@ -28,7 +29,7 @@ suspend fun fetchStations(lat: Double, lng: Double, radiusKm: Double): Array<Sta
 }
 
 suspend fun fetchAllStations(limit: Int = 5000): Array<Station> {
-    val url = "$SUPABASE_URL/rest/v1/stations?select=*,fuel_prices(*)&active=eq.true&limit=$limit&order=id"
+    val url = "${getSupabaseUrl()}/rest/v1/stations?select=*,fuel_prices(*)&active=eq.true&limit=$limit&order=id"
     val h = supabaseHeaders()
     val opts = js("({method: 'GET', headers: h})")
     val response = js("window.fetch(url, opts)").await()
@@ -46,7 +47,7 @@ suspend fun fetchStationsInViewport(
     maxLng: Double,
     fuelType: String? = null
 ): Array<Station> {
-    val rpcUrl = "$SUPABASE_URL/rest/v1/rpc/viewport_stations"
+    val rpcUrl = "${getSupabaseUrl()}/rest/v1/rpc/viewport_stations"
     val params = if (fuelType != null) {
         js("JSON.stringify({p_min_lat: minLat, p_min_lng: minLng, p_max_lat: maxLat, p_max_lng: maxLng, p_fuel_type: fuelType})")
     } else {
@@ -63,7 +64,7 @@ suspend fun fetchStationsInViewport(
 }
 
 suspend fun searchStations(query: String): Array<Station> {
-    val url = "$SUPABASE_URL/rest/v1/stations?select=*&active=eq.true&or=(city.ilike.*$query*,address.ilike.*$query*)&limit=50"
+    val url = "${getSupabaseUrl()}/rest/v1/stations?select=*&active=eq.true&or=(city.ilike.*$query*,address.ilike.*$query*)&limit=50"
     val h = supabaseHeaders()
     val opts = js("({method: 'GET', headers: h})")
     val response = js("window.fetch(url, opts)").await()
