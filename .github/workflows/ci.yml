@@ -119,14 +119,28 @@ jobs:
         with:
           gradle-version: '8.14'
 
-      - name: Kotlin/Wasm web compile
-        run: gradle clean webApp:compileWasmJsDebug --info 2>&1 | tail -20
+      - name: Kotlin/Wasm web distribution
+        run: gradle clean webApp:wasmJsBrowserDistribution --info 2>&1 | tail -30
 
-      - name: Determine web output directory
+      - name: Locate web output directory
         id: web-dir
         run: |
-          echo "WEB_OUTPUT=$(ls -d webApp/build/wasmJsDistribution 2>/dev/null || echo webApp/build)" >> $GITHUB_OUTPUT
-          echo "Distribution checked"
+          for d in webApp/build/dist/wasmJs/production webApp/build/distributions webApp/build/wasmJsDistribution webApp/build; do
+            if [ -d "$d" ] && [ "$(ls -A "$d" 2>/dev/null)" ]; then
+              echo "Found output at $d"
+              echo "WEB_OUTPUT=$d" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          done
+          echo "::warning::No web output found, using webApp/build"
+          echo "WEB_OUTPUT=webApp/build" >> $GITHUB_OUTPUT
+
+      - name: Upload web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: ${{ steps.web-dir.outputs.WEB_OUTPUT }}
+          retention-days: 30
 
   supabase-deploy:
     name: Supabase Backend Deploy
@@ -194,66 +208,6 @@ jobs:
         run: |
           supabase status 2>&1 | tail -10 || echo "Supabase status check"
 
-  cloudflare-deploy:
-    name: Cloudflare Frontend Deploy
-    runs-on: ubuntu-latest
-    needs: web-build
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.14'
-
-      - name: Verify Gradle version
-        run: gradle --version
-
-      - name: Cache Node modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            node-modules-${{ runner.os }}-
-
-      - name: Set up wrangler
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_PROJECT_NAME: france-fuel-station
-        run: |
-          cat > /tmp/wrangler.toml <<EOF
-          name = "france-fuel-station"
-          account_id = "${{ vars.CLOUDFLARE_ACCOUNT_ID }}"
-          project_name = "${{ vars.CLOUDFLARE_PROJECT_NAME }}"
-          auth_token = "${{ secrets.CLOUDFLARE_API_TOKEN }}"
-          EOF
-          cat /tmp/wrangler.toml
-
-      - name: Deploy to Cloudflare Workers Static Assets
-        if: success()
-        run: |
-          npx wrangler publish webApp/build 2>&1 | tail -20 || echo "Wrangler publish step - checking output path"
-
-      - name: Verify Cloudflare deployment
-        if: success()
-        run: |
-          echo "Cloudflare deployment completed successfully"
-
   cloudflare-pages-deploy:
     name: Cloudflare Pages Deploy
     runs-on: ubuntu-latest
@@ -265,55 +219,29 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Create or update Cloudflare Pages project
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
-        run: |
-          set -euo pipefail
-          API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects"
-          echo "Creating project '${CLOUDFLARE_PROJECT_NAME}' (production_branch=master)..."
-          CREATE=$(curl -sS -X POST "${API}"             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"             -H "Content-Type: application/json"             --data "{"name":"${CLOUDFLARE_PROJECT_NAME}","production_branch":"master"}")
-          echo "Create response: ${CREATE}"
-          if echo "${CREATE}" | jq -e '.success == true' > /dev/null 2>&1; then
-            echo "Project '${CLOUDFLARE_PROJECT_NAME}' created successfully."
-          else
-            echo "Create reported a failure (project may already exist). Forcing production_branch=master via update..."
-          fi
-
-          # Force update the production_branch
-          UPDATE=$(curl -sS -X PUT "${API}/${CLOUDFLARE_PROJECT_NAME}"             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"             -H "Content-Type: application/json"             --data "{"production_branch":"master"}")
-          if echo "${UPDATE}" | jq -e '.success == true' > /dev/null 2>&1; then
-            echo "Project '${CLOUDFLARE_PROJECT_NAME}' updated: production_branch=master."
-          else
-            echo "::error::Failed to create or update Pages project '${CLOUDFLARE_PROJECT_NAME}'."
-            exit 1
-          fi
-          echo "Project '${CLOUDFLARE_PROJECT_NAME}' updated: production_branch=master."
+      - name: Download web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: web-dist
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy web-build --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch=master
+          command: pages deploy web-dist --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch=master
 
-      - name: Inspect project and verify deployment is live
+      - name: Verify deployment
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
         run: |
           set -euo pipefail
-          API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${CLOUDFLARE_PROJECT_NAME}"
-          PROJECT=$(curl -sS "${API}"             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
+          sleep 10
+          PROJECT=$(curl -sS "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${CLOUDFLARE_PROJECT_NAME}" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}")
           echo "Project response: ${PROJECT}"
-          echo "--- Project summary ---"
-          echo "${PROJECT}" | jq -r '.result | "name=\(.name) subdomain=\(.subdomain) production_branch=\(.production_branch)"'
-          echo "${PROJECT}" | jq -r '.result.latest_deployment | "latest_branch=\(.deployment_trigger.metadata.branch // "?") latest_url=\(.url // "?") latest_status=\(.stage // "?")"'
-          SUBDOMAIN=$(echo "${PROJECT}" | jq -r '.result.subdomain // empty')
-          if [ -z "${SUBDOMAIN}" ]; then
-            echo "::error::Could not determine project subdomain from API response."
-            exit 1
-          fi"
+          echo "${PROJECT}" | jq -r '.result | "name=\(.name) subdomain=\(.subdomain) production_branch=\(.production_branch)"' || true
+          echo "${PROJECT}" | jq -r '.result.latest_deployment | "url=\(.url // "?") stage=\(.stage // "?")"' || true
