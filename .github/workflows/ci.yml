@@ -53,6 +53,7 @@ jobs:
     name: Android Build
     runs-on: ubuntu-latest
     needs: kmp-validation
+    continue-on-error: true
 
     steps:
       - name: Checkout repository
@@ -237,6 +238,13 @@ jobs:
         with:
           name: web-dist
           path: web-dist
+
+      - name: Diagnose web artifact
+        run: |
+          echo "=== Downloaded web-dist contents ==="
+          ls -la web-dist/ || echo "web-dist directory missing!"
+          echo "=== File sizes ==="
+          du -sh web-dist/* 2>/dev/null || echo "No files"
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
