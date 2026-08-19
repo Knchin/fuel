@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS stations (
     longitude DOUBLE PRECISION NOT NULL,
     geom GEOGRAPHY(POINT, 4326) GENERATED ALWAYS AS (
         POINT(longitude latitude)
-    ) STABLE NOT NULL,
+    ) STORED NOT NULL,
     presence_type VARCHAR(50),
     opening_hours TEXT,
     services TEXT,

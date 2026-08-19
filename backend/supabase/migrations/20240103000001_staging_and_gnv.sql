@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS staging_fuel_spatial (
     longitude DOUBLE PRECISION NOT NULL,
     geom GEOGRAPHY(POINT, 4326) GENERATED ALWAYS AS (
         POINT(longitude latitude)
-    ) STABLE NOT NULL,
+    ) STORED NOT NULL,
     UNIQUE(staging_id, source_id)
 );
 
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS gnv_stations (
     longitude DOUBLE PRECISION NOT NULL,
     geom GEOGRAPHY(POINT, 4326) GENERATED ALWAYS AS (
         POINT(longitude latitude)
-    ) STABLE NOT NULL,
+    ) STORED NOT NULL,
     operator TEXT,
     capacity_kg NUMERIC(10, 2),
     dispenser_count INTEGER,
