@@ -7,6 +7,8 @@ private val FUEL_TYPES = listOf("Gazole", "SP95", "E10", "SP98", "E85", "GPLc", 
 private const val DEFAULT_LAT = 48.8566
 private const val DEFAULT_LNG = 2.3522
 private const val DEFAULT_ZOOM = 12
+private const val VIEWPORT_ZOOM_THRESHOLD = 11
+private const val DEBOUNCE_MS = 300
 
 fun formatPrice(price: Double): String {
     val s = price.toString()
@@ -55,12 +57,16 @@ class MapApp {
     private var selectedFilters: MutableSet<String> = mutableSetOf()
     private var userMarker: dynamic = null
     private var searchTimeout: Int? = null
+    private var moveendTimeout: Int? = null
+    private var isViewportLoading: Boolean = false
+    private var totalLoaded: Int = 0
 
     fun init() {
         setupMap()
         setupFilters()
         setupSearch()
         setupLocateButton()
+        setupMoveendListener()
         loadAllStations()
     }
 
@@ -71,6 +77,61 @@ class MapApp {
             js("({attribution: '\\u00a9 OpenStreetMap contributors', maxZoom: 19})")
         ).addTo(map)
         L.control.scale(js("({imperial: false})")).addTo(map)
+    }
+
+    private fun setupMoveendListener() {
+        js("map.on('moveend', function() { window._fuelApp.onMapMoveEnd() })")
+    }
+
+    fun onMapMoveEnd() {
+        moveendTimeout?.let { js("window.clearTimeout(it)") }
+        moveendTimeout = js("window.setTimeout(function() { window._fuelApp.onMoveEndDebounced() }, $DEBOUNCE_MS)") as Int
+    }
+
+    fun onMoveEndDebounced() {
+        val zoom = js("map.getZoom()") as Int
+        if (zoom >= VIEWPORT_ZOOM_THRESHOLD) {
+            fetchAndRenderViewport()
+        } else {
+            updateMarkersFromSource(allStations)
+        }
+    }
+
+    private fun fetchAndRenderViewport() {
+        if (isViewportLoading) return
+        isViewportLoading = true
+        showViewportLoading()
+
+        val bounds = js("map.getBounds()")
+        val ne = js("bounds.getNorthEast()")
+        val sw = js("bounds.getSouthWest()")
+        val minLat = js("sw.lat") as Double
+        val minLng = js("sw.lng") as Double
+        val maxLat = js("ne.lat") as Double
+        val maxLng = js("ne.lng") as Double
+
+        val fuelType = if (selectedFilters.size == 1) selectedFilters.first() else null
+
+        runPromise {
+            try {
+                val stations = fetchStationsInViewport(minLat, minLng, maxLat, maxLng, fuelType)
+                isViewportLoading = false
+                hideViewportLoading()
+                updateMarkersFromSource(stations)
+            } catch (e: Exception) {
+                isViewportLoading = false
+                hideViewportLoading()
+                showError("Erreur de chargement: ${e.message}")
+            }
+        }
+    }
+
+    private fun showViewportLoading() {
+        setElementText("station-count", "Chargement...")
+    }
+
+    private fun hideViewportLoading() {
+        // count is updated by updateMarkersFromSource
     }
 
     private fun setupFilters() {
@@ -94,7 +155,7 @@ class MapApp {
     fun clearFilters() {
         selectedFilters.clear()
         updateFilterButtons()
-        updateMarkers()
+        refreshView()
     }
 
     fun toggleFilter(fuel: String) {
@@ -104,7 +165,16 @@ class MapApp {
             selectedFilters.add(fuel)
         }
         updateFilterButtons()
-        updateMarkers()
+        refreshView()
+    }
+
+    private fun refreshView() {
+        val zoom = js("map.getZoom()") as Int
+        if (zoom >= VIEWPORT_ZOOM_THRESHOLD) {
+            fetchAndRenderViewport()
+        } else {
+            updateMarkersFromSource(allStations)
+        }
     }
 
     private fun updateFilterButtons() {
@@ -218,9 +288,9 @@ class MapApp {
             try {
                 val stations = fetchAllStations()
                 allStations = stations
+                totalLoaded = stations.size
                 hideLoading()
-                setElementText("station-count", "${stations.size} stations")
-                updateMarkers()
+                updateMarkersFromSource(allStations)
             } catch (e: Exception) {
                 hideLoading()
                 showError("Erreur de chargement: ${e.message}")
@@ -228,7 +298,7 @@ class MapApp {
         }
     }
 
-    private fun updateMarkers() {
+    private fun updateMarkersFromSource(stations: Array<Station>) {
         for (m in currentMarkers) {
             map.removeLayer(m)
         }
@@ -237,7 +307,7 @@ class MapApp {
         val markers = mutableListOf<dynamic>()
         var count = 0
 
-        for (station in allStations) {
+        for (station in stations) {
             val prices = station.fuelPrices
             if (prices == null || prices.isEmpty()) continue
 
@@ -275,7 +345,36 @@ class MapApp {
         }
 
         currentMarkers = markers.toTypedArray()
-        setElementText("station-count", "$count stations affich\u00e9es")
+
+        val zoom = js("map.getZoom()") as Int
+        if (zoom >= VIEWPORT_ZOOM_THRESHOLD) {
+            setElementText("station-count", "$count stations (zone)")
+        } else {
+            setElementText("station-count", "$count stations affich\u00e9es / $totalLoaded")
+        }
+
+        if (count == 0) {
+            showEmptyState(stations.isEmpty())
+        } else {
+            hideEmptyState()
+        }
+    }
+
+    private fun showEmptyState(isSourceEmpty: Boolean) {
+        var msg = "Aucune station avec prix disponible dans cette zone"
+        if (isSourceEmpty) {
+            msg = "Aucune station trouv\u00e9e"
+        }
+        val countEl = getElementById("station-count") ?: return
+        js("countEl.textContent = msg")
+    }
+
+    private fun hideEmptyState() {
+        // handled by updateMarkersFromSource setting count text
+    }
+
+    private fun updateMarkers() {
+        updateMarkersFromSource(allStations)
     }
 
     private fun priceColor(price: Double, station: Station): String {

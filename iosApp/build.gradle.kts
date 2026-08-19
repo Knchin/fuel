@@ -1,9 +1,7 @@
 plugins {
-    kotlin("multiplatform")
+    kotlin("jvm")
 }
 
-kotlin {
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+dependencies {
+    implementation(project(":shared"))
 }

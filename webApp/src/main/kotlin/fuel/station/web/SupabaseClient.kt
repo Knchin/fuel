@@ -39,6 +39,29 @@ suspend fun fetchAllStations(limit: Int = 5000): Array<Station> {
     return arr.map { parseStation(it) }.toTypedArray()
 }
 
+suspend fun fetchStationsInViewport(
+    minLat: Double,
+    minLng: Double,
+    maxLat: Double,
+    maxLng: Double,
+    fuelType: String? = null
+): Array<Station> {
+    val rpcUrl = "$SUPABASE_URL/rest/v1/rpc/viewport_stations"
+    val params = if (fuelType != null) {
+        js("JSON.stringify({p_min_lat: minLat, p_min_lng: minLng, p_max_lat: maxLat, p_max_lng: maxLng, p_fuel_type: fuelType})")
+    } else {
+        js("JSON.stringify({p_min_lat: minLat, p_min_lng: minLng, p_max_lat: maxLat, p_max_lng: maxLng, p_fuel_type: null})")
+    }
+    val h = supabaseHeaders()
+    val opts = js("({method: 'POST', headers: h, body: params})")
+    val response = js("window.fetch(rpcUrl, opts)").await()
+    val ok = js("response.ok") as Boolean
+    if (!ok) throw Exception("Erreur serveur: ${js("response.status")}")
+    val jsonText = js("response.text()").await() as String
+    val arr = js("JSON.parse(jsonText)") as Array<dynamic>
+    return arr.map { parseStation(it) }.toTypedArray()
+}
+
 suspend fun searchStations(query: String): Array<Station> {
     val url = "$SUPABASE_URL/rest/v1/stations?select=*&active=eq.true&or=(city.ilike.*$query*,address.ilike.*$query*)&limit=50"
     val h = supabaseHeaders()
