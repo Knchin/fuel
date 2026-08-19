@@ -49,51 +49,6 @@ jobs:
           path: webApp/build/distributions/
           retention-days: 30
 
-  supabase-deploy:
-    name: Deploy Backend
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Supabase CLI
-        run: npm install -g supabase
-
-      - name: Push database migrations
-        working-directory: backend/supabase
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase db push --linked --yes
-
-      - name: Deploy Edge Functions
-        working-directory: backend/supabase
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase functions deploy ingest-fuel-data --linked
-
-      - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
-
-      - name: Seed database
-        working-directory: backend/supabase
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: |
-          if [ -f seed.sql ]; then
-            echo "Running seed.sql..."
-            DB_URL=$(supabase db connection-string --linked)
-            psql "$DB_URL" -f seed.sql
-          else
-            echo "No seed.sql found, skipping."
-          fi
-
   cloudflare-deploy:
     name: Deploy Web
     runs-on: ubuntu-latest
@@ -139,5 +94,3 @@ jobs:
           wrangler pages project create "$CLOUDFLARE_PROJECT_NAME" --production-branch=main || echo "Project may already exist, continuing..."
           wrangler pages deploy web-dist --project-name="$CLOUDFLARE_PROJECT_NAME" --branch=main
 
-# iOS builds require macOS runner and Xcode.
-# Add an ios-build job here when a macOS CI runner is configured.
