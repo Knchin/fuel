@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="france.fuel.station.android">
+    package="fuel.station.android">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -8,8 +8,8 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="Station Essence France"
-        android:theme="@style/Theme.FranceFuel">
+        android:label="Station Essence"
+        android:theme="@style/Theme.Fuel">
         
         <activity
             android:name=".MainActivity"

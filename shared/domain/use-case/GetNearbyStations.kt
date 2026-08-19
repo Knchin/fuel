@@ -1,7 +1,7 @@
-package france.fuel.station.shared.domain.use-case
+package fuel.station.shared.domain.use-case
 
-import france.fuel.station.shared.domain.model.Station
-import france.fuel.station.shared.domain.enum.FuelType
+import fuel.station.shared.domain.model.Station
+import fuel.station.shared.domain.enum.FuelType
 import kotlinx.coroutines.Result
 
 class GetNearbyStations(
@@ -41,7 +41,7 @@ class SortStationsByPrice(
 ) {
     fun execute(): List<Station> = stations.sortedBy {
         when (it.pricePerLiter.value) {
-            is france.fuel.station.shared.domain.model.DecimalPrice -> it.value
+            is fuel.station.shared.domain.model.DecimalPrice -> it.value
             null -> Double.POSITIVE_INFINITY
         }
     }
@@ -77,13 +77,13 @@ class EvaluatePriceFreshness(
 }
 
 class EvaluateFuelAvailability(
-    val availability: france.fuel.station.shared.domain.enum.Availability,
-    val price: france.fuel.station.shared.domain.model.DecimalPrice?
+    val availability: fuel.station.shared.domain.enum.Availability,
+    val price: fuel.station.shared.domain.model.DecimalPrice?
 ): FuelAvailabilityResult {
 
-    fun frenchLabel(): String = availability.frenchLabel()
+    fun label(): String = availability.label()
 
-    fun frenchLabelWithSymbol(): String = availability.frenchLabelWithSymbol()
+    fun labelWithSymbol(): String = availability.labelWithSymbol()
 
     fun isDisplayedAsAvailable(): Boolean = when (this) {
         FuelAvailabilityResult.AVAILABLE -> true
@@ -94,7 +94,7 @@ class EvaluateFuelAvailability(
 
 data class FuelAvailabilityResult(
     val label: String,
-    val frenchLabel: String,
+    val label: String,
     val isAvailable: Boolean,
     val isUnavailableDefinitively: Boolean,
     val isUnavailableTemporarily: Boolean,

@@ -1,7 +1,7 @@
-package france.fuel.station.shared.data.network
+package fuel.station.shared.data.network
 
-import france.fuel.station.shared.domain.model.Station
-import france.fuel.station.shared.domain.valueobject.SearchLocation
+import fuel.station.shared.domain.model.Station
+import fuel.station.shared.domain.valueobject.SearchLocation
 import io.ktor.client.engine.curl.curlEngine
 import io.ktor.client.request.*
 import io.ktor.client.responses.*

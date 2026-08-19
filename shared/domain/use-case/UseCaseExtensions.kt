@@ -1,24 +1,24 @@
-package france.fuel.station.shared.domain.use-case
+package fuel.station.shared.domain.use-case
 
-import france.fuel.station.shared.domain.model.Station
-import france.fuel.station.shared.domain.model.FreshnessState
-import france.fuel.station.shared.domain.model.Page
-import france.fuel.station.shared.domain.model.StationSearchState
-import france.fuel.station.shared.domain.enum.FuelType
-import france.fuel.station.shared.domain.valueobject.SearchLocation
-import france.fuel.station.shared.presentation.model.UiState
-import france.fuel.station.shared.presentation.model.StationUi
+import fuel.station.shared.domain.model.Station
+import fuel.station.shared.domain.model.FreshnessState
+import fuel.station.shared.domain.model.Page
+import fuel.station.shared.domain.model.StationSearchState
+import fuel.station.shared.domain.enum.FuelType
+import fuel.station.shared.domain.valueobject.SearchLocation
+import fuel.station.shared.presentation.model.UiState
+import fuel.station.shared.presentation.model.StationUi
 import kotlinx.coroutines.Result
 
 // Convert domain Station to UI StationUi
-fun domainStationToUi(station: Station, distance: france.fuel.station.shared.domain.model.Distance? = null, freshness: FreshnessState? = null): StationUi {
+fun domainStationToUi(station: Station, distance: fuel.station.shared.domain.model.Distance? = null, freshness: FreshnessState? = null): StationUi {
     val fuelPrices = station.fuelPrices.map { price ->
         FuelPriceUi(
             fuelType = price.fuelType,
             price = price.pricePerLiter.formatted,
             priceFormatted = formatPrice(price.pricePerLiter.value),
             availability = price.availability,
-            availabilityFrench = price.availability.frenchLabel(),
+            availabilityLabel = price.availability.label(),
             isFresh = false, // computed later based on reportedAt vs now
             isAging = false,
             isStale = false,
@@ -63,7 +63,7 @@ fun evaluateFreshness(reportedAt: Long): FreshnessState {
 }
 
 fun formatPrice(price: BigDecimal): String {
-    // Format in French style: 1,689
+    // Format in government style: 1,689
     val formatted = price.setScale(3, BigDecimal.ROUND_HALF_UP)
         .toString()
         .replace(".", ",")
@@ -131,6 +131,6 @@ fun filterStationsByFuel(
 
 // Use case: get primary fuel price (lowest available)
 fun getPrimaryFuelPrice(station: StationUi): FuelPriceUi? {
-    val priced = station.fuelPrices.filter { it.availability.frenchLabel() == "Disponible" }
+    val priced = station.fuelPrices.filter { it.availability.label() == "Disponible" }
     return if (priced.isNotEmpty()) priced[0] else null
 }

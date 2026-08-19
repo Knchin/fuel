@@ -1,12 +1,5 @@
 package fuel.station.shared.domain.valueobject
 
-import fuel.station.shared.domain.enum.FuelType
-
-data class FuelSelection(
-    val selectedTypes: Set<FuelType>,
-    val includeAll: Boolean
-)
-
 data class SearchLocation(
     val label: String,
     val latitude: Double,
@@ -18,9 +11,4 @@ data class SearchLocation(
 data class Distance(
     val value: Double,
     val formatted: String
-)
-
-data class StationDistance(
-    val station: fuel.station.shared.domain.model.Station,
-    val distance: Distance
 )

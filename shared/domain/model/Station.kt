@@ -1,7 +1,7 @@
-package france.fuel.station.shared.domain.model
+package fuel.station.shared.domain.model
 
-import france.fuel.station.shared.domain.enum.FuelType
-import france.fuel.station.shared.domain.enum.Availability
+import fuel.station.shared.domain.enum.FuelType
+import fuel.station.shared.domain.enum.Availability
 
 data class FuelPrice(
     val fuelType: FuelType,

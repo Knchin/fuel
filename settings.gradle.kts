@@ -1,4 +1,4 @@
-rootProject.name = "france-fuel-station-comparison"
+rootProject.name = "fuel-station-comparison"
 
 pluginManagement {
     repositories {

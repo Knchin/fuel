@@ -1,20 +1,20 @@
-package france.fuel.station.shared.presentation.model
+package fuel.station.shared.presentation.model
 
-import france.fuel.station.shared.domain.model.Station
-import france.fuel.station.shared.domain.model.FreshnessState
-import france.fuel.station.shared.domain.model.Distance
-import france.fuel.station.shared.domain.enum.Availability
-import france.fuel.station.shared.domain.valueobject.SearchLocation
+import fuel.station.shared.domain.model.Station
+import fuel.station.shared.domain.model.FreshnessState
+import fuel.station.shared.domain.model.Distance
+import fuel.station.shared.domain.enum.Availability
+import fuel.station.shared.domain.valueobject.SearchLocation
 
 // UI State models - what the Compose UI observes
 // These are separate from domain models and adapted for UI consumption
 
 data class FuelPriceUi(
-    val fuelType: france.fuel.station.shared.domain.enum.FuelType,
+    val fuelType: fuel.station.shared.domain.enum.FuelType,
     val price: String,
     val priceFormatted: String,
-    val availability: france.fuel.station.shared.domain.enum.Availability,
-    val availabilityFrench: String,
+    val availability: fuel.station.shared.domain.enum.Availability,
+    val availabilityLabel: String,
     val isFresh: Boolean,
     val isAging: Boolean,
     val isStale: Boolean,
@@ -52,7 +52,7 @@ data class SearchUiState(
 
 data class HomeUiState(
     val location: SearchLocation?,
-    val selectedFuel: france.fuel.station.shared.domain.enum.FuelType?,
+    val selectedFuel: fuel.station.shared.domain.enum.FuelType?,
     val stations: List<StationUi>,
     val isLoading: Boolean,
     val refreshTriggered: Boolean,
@@ -72,7 +72,7 @@ data class StationSearchState(
 )
 
 data class StationSearchIdle(
-    val preferredFuel: france.fuel.station.shared.domain.enum.FuelType?,
+    val preferredFuel: fuel.station.shared.domain.enum.FuelType?,
     val searchRadius: Double
 )
 

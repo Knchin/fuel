@@ -1,13 +1,13 @@
-package france.fuel.station.shared.data.source
+package fuel.station.shared.data.source
 
-import france.fuel.station.shared.domain.model.Station
-import france.fuel.station.shared.domain.model.FuelPrice
-import france.fuel.station.shared.domain.model.DecimalPrice
-import france.fuel.station.shared.domain.enum.FuelType
-import france.fuel.station.shared.domain.enum.Availability
+import fuel.station.shared.domain.model.Station
+import fuel.station.shared.domain.model.FuelPrice
+import fuel.station.shared.domain.model.DecimalPrice
+import fuel.station.shared.domain.enum.FuelType
+import fuel.station.shared.domain.enum.Availability
 import java.math.BigDecimal
 
-// Government source DTO - maps directly to the official French government feed structure
+// Government source DTO - maps directly to the official government feed structure
 // Never leak these DTOs into UI or domain code - they must be normalized
 
 // Government fuel ID mapping: 1=Gazole, 2=SP95, 3=E85, 4=GPLc, 5=E10, 6=SP98
@@ -94,7 +94,7 @@ data class FuelPriceViewModel(
     val pricePerLiter: DecimalPrice,
     val reportedAt: Long,
     val availability: Availability,
-    val availabilityFrench: String,
+    val availabilityLabel: String,
     val ruptureType: String?,
     val freshness: FreshnessState
 )

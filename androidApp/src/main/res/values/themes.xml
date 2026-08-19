@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.FranceFuel" parent="Theme.Material.DayNoActionBar">
+    <style name="Theme.Fuel" parent="Theme.Material.DayNoActionBar">
         <item name="colorPrimary">#FF5722</item>
         <item name="colorOnPrimary">#FFFFFF</item>
         <item name="colorSurface">#FFFFFF</item>

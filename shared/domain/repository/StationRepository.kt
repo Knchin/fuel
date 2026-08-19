@@ -1,7 +1,7 @@
-package france.fuel.station.shared.domain.repository
+package fuel.station.shared.domain.repository
 
-import france.fuel.station.shared.domain.model.Station
-import france.fuel.station.shared.domain.valueobject.SearchLocation
+import fuel.station.shared.domain.model.Station
+import fuel.station.shared.domain.valueobject.SearchLocation
 import kotlinx.coroutines.Result
 
 interface StationRepository {

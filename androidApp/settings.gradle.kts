@@ -1,3 +1,3 @@
-rootProject.name = "FranceFuelKMP"
+rootProject.name = "FuelKMP"
 include(":shared")
 include("androidApp")

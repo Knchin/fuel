@@ -1,11 +1,11 @@
-package france.fuel.station.shared.data.source.adapter
+package fuel.station.shared.data.source.adapter
 
-import france.fuel.station.shared.domain.model.Station
-import france.fuel.station.shared.domain.model.FuelPrice
-import france.fuel.station.shared.domain.model.DecimalPrice
-import france.fuel.station.shared.domain.enum.FuelType
-import france.fuel.station.shared.domain.enum.Availability
-import france.fuel.station.shared.domain.valueobject.SearchLocation
+import fuel.station.shared.domain.model.Station
+import fuel.station.shared.domain.model.FuelPrice
+import fuel.station.shared.domain.model.DecimalPrice
+import fuel.station.shared.domain.enum.FuelType
+import fuel.station.shared.domain.enum.Availability
+import fuel.station.shared.domain.valueobject.SearchLocation
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -24,7 +24,7 @@ object GovernmentFeedParser {
         6 to FuelType.SP98
     )
 
-    private val governmentIdToFrenchLabel = mapOf(
+    private val governmentIdToLabel = mapOf(
         1 to "Gazole (B7)",
         2 to "SP95 (E5)",
         3 to "E85",
@@ -65,7 +65,7 @@ object GovernmentFeedParser {
             null, "" -> DecimalPrice(BigDecimal.ZERO, "0,000")
             else -> {
                 val bigDec = BigDecimal(price.price)
-                // Format to 3 decimal places for French fuel prices
+                // Format to 3 decimal places for government fuel prices
                 val formatted = bigDec.setScale(3, BigDecimal.ROUND_HALF_UP).toString()
                     .replace(".", ",")
                     .replace("-.", "-")
@@ -154,7 +154,7 @@ object GovernmentFeedParser {
     // Parse raw government feed line (CSV/JSON) into GovernmentStation
     // This isolates the government-specific format parsing
     fun parseFromCsvLine(line: String): GovernmentStation? {
-        // CSV format from French government feed:
+        // CSV format from government feed:
         // id,addr,cp,ville,lat,lng,horra,typserv,presence,fuel1Id,fuel1Price,fuel1Date,fuel1Dispo,fuel1RuptType,fuel1RuptDeb,fuel2Id,...
         val parts = line.split(",")
         if (parts.size < 9) return null

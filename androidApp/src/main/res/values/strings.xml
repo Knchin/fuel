@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Station Essence France</string>
+    <string name="app_name">Station Essence</string>
     <string name="find_fuel">Trouver du carburant</string>
     <string name="stations_proximite">Stations à proximité</string>
     <string name="refresh">Actualiser</string>

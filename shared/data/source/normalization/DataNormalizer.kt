@@ -1,12 +1,12 @@
-package france.fuel.station.shared.data.source.normalization
+package fuel.station.shared.data.source.normalization
 
-import france.fuel.station.shared.domain.model.Station
-import france.fuel.station.shared.domain.model.FuelPrice
-import france.fuel.station.shared.domain.model.DecimalPrice
-import france.fuel.station.shared.domain.enum.FuelType
-import france.fuel.station.shared.domain.enum.Availability
-import france.fuel.station.shared.data.source.adapter.GovernmentFeedParser
-import france.fuel.station.shared.data.source.validation.SourceValidator
+import fuel.station.shared.domain.model.Station
+import fuel.station.shared.domain.model.FuelPrice
+import fuel.station.shared.domain.model.DecimalPrice
+import fuel.station.shared.domain.enum.FuelType
+import fuel.station.shared.domain.enum.Availability
+import fuel.station.shared.data.source.adapter.GovernmentFeedParser
+import fuel.station.shared.data.source.validation.SourceValidator
 import java.math.BigDecimal
 
 // Normalization layer - converts government DTOs to normalized persistence model

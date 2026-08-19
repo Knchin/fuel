@@ -1,9 +1,9 @@
-package france.fuel.station.shared.data.source.validation
+package fuel.station.shared.data.source.validation
 
-import france.fuel.station.shared.domain.model.Station
-import france.fuel.station.shared.domain.model.DecimalPrice
-import france.fuel.station.shared.domain.enum.FuelType
-import france.fuel.station.shared.domain.enum.Availability
+import fuel.station.shared.domain.model.Station
+import fuel.station.shared.domain.model.DecimalPrice
+import fuel.station.shared.domain.enum.FuelType
+import fuel.station.shared.domain.enum.Availability
 import java.math.BigDecimal
 
 // Validation rules for government source data
@@ -22,7 +22,7 @@ object SourceValidator {
     }
 
     private fun isValidDecimal(s: String): Boolean {
-        // Allow format like "1,689" or "1.689" (French/currency format)
+        // Allow format like "1,689" or "1.689" (government/currency format)
         val cleaned = s.replace(" ", "").replace("€", "").replace("FRF", "").replace("F", "")
         return cleaned.remove(',').remove('.').all { it.isDigit() } && cleaned.count { _ == ',' || _ == '.' } <= 1
     }
@@ -72,7 +72,7 @@ object SourceValidator {
         }
     }
 
-    // Check if price is within reasonable French fuel price range (EUR per liter)
+    // Check if price is within reasonable government fuel price range (EUR per liter)
     fun isPriceInReasonableRange(price: BigDecimal): Boolean {
         return price in BigDecimal("0.0") .. BigDecimal("20.0")
     }

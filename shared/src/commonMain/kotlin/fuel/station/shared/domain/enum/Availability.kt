@@ -16,13 +16,4 @@ enum class Availability {
         REPORTED_PRICE -> "Information indisponible"
         UNKNOWN -> "Information indisponible"
     }
-
-    fun labelWithSymbol(): String = when (this) {
-        AVAILABLE -> "✓ Disponible"
-        UNAVAILABLE -> "× Indisponible"
-        UNAVAILABLE_TEMPORARILY -> "⚠ Temporairement indisponible"
-        UNAVAILABLE_DEFINITIVELY -> "× Indisponible définitivement"
-        REPORTED_PRICE -> "? Information indisponible"
-        UNKNOWN -> "? Information indisponible"
-    }
 }

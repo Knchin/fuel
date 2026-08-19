@@ -1,12 +1,12 @@
 # Fuel Station & Price Comparison Application
 
-A Kotlin Multiplatform application that helps users find the best fuel prices at stations near them in France, using official government fuel price data.
+A Kotlin Multiplatform application that helps users find the best fuel prices at stations near them, using official government fuel price data.
 
 ## Project Description
 
 The application answers: "Where can I find the fuel I need at the best reported price near me right now?"
 
-**Primary data source**: Official French government fuel-price dataset (`Prix des carburants en France — Flux instantané — v2`)
+**Primary data source**: Official government fuel-price dataset
 
 **Architecture**:
 - **Kotlin Multiplatform** with shared domain/data/presentation code across Android, iOS, and Web
@@ -35,11 +35,11 @@ The application answers: "Where can I find the fuel I need at the best reported 
 
 ✅ All 50 quality bar items satisfied
 
-- **Product**: Nearby stations, fuel selection, price/distance sorting, station details, availability, freshness, map, navigation, refresh, cache, offline, French localization, accessibility
+- **Product**: Nearby stations, fuel selection, price/distance sorting, station details, availability, freshness, map, navigation, refresh, cache, offline, localization, accessibility
 - **Backend**: Supabase PostgreSQL/PostGIS, migrations, Edge Functions, RLS policies, Cron scheduling
 - **Security**: RLS enabled, no service-role keys in clients, no behavioral analytics
 - **Data Architecture**: Government DTO → Parser → Normalized Persistence → Domain → Repository → Use Case → UI State
-- **Localization**: French throughout (UI, numbers, currency, dates, relative times)
+- **Localization**: Local language throughout (UI, numbers, currency, dates, relative times)
 - **No Fabricated Data**: station.name/brand = nullable
 - **No "Live" Claims**: Prices labeled with freshness state
 
