@@ -119,21 +119,21 @@ jobs:
         with:
           gradle-version: '8.14'
 
-      - name: Kotlin/Wasm web distribution
-        run: gradle clean webApp:wasmJsBrowserDistribution --info 2>&1 | tail -30
+      - name: Kotlin/JS web distribution
+        run: gradle clean webApp:jsBrowserDistribution --info 2>&1 | tail -30
 
       - name: Locate web output directory
         id: web-dir
         run: |
-          for d in webApp/build/dist/wasmJs/production webApp/build/distributions webApp/build/wasmJsDistribution webApp/build; do
+          for d in webApp/build/distributions webApp/build/dist/wasmJs/production webApp/build/wasmJsDistribution; do
             if [ -d "$d" ] && [ "$(ls -A "$d" 2>/dev/null)" ]; then
               echo "Found output at $d"
               echo "WEB_OUTPUT=$d" >> $GITHUB_OUTPUT
               exit 0
             fi
           done
-          echo "::warning::No web output found, using webApp/build"
-          echo "WEB_OUTPUT=webApp/build" >> $GITHUB_OUTPUT
+          echo "::error::No web output directory found after build"
+          exit 1
 
       - name: Upload web artifact
         uses: actions/upload-artifact@v4

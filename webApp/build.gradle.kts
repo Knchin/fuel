@@ -1,12 +1,11 @@
 plugins {
-    `kotlin-wasm-js`
+    kotlin("js")
 }
 
 kotlin {
-    wasmJs {
-        binaries["wasmJs"] {
-            // ...
-        }
+    js(IR) {
+        browser()
+        binaries.executable()
     }
 
     sourceSets {
@@ -15,7 +14,7 @@ kotlin {
                 // Shared dependencies
             }
         }
-        val webMain by getting {
+        val jsMain by getting {
             dependsOn(commonMain)
         }
     }
