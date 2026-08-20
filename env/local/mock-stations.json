@@ -1,0 +1,194 @@
+{
+  "stations": [
+    {
+      "id": "1",
+      "source_id": "FR-00001",
+      "address": "15 Rue de Rivoli",
+      "postal_code": "75001",
+      "city": "Paris",
+      "latitude": 48.8566,
+      "longitude": 2.3488,
+      "presence_type": "station",
+      "opening_hours": "Lun-Sam: 06:00-22:00, Dim: 08:00-20:00",
+      "services": "Station services, Toilettes publiques",
+      "source": "gouvernement_francais",
+      "active": true,
+      "fuel_prices": [
+        {"fuel_type": "Gazole", "price_per_liter": 1.759, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "E10", "price_per_liter": 1.829, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "SP98", "price_per_liter": 1.959, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null}
+      ]
+    },
+    {
+      "id": "2",
+      "source_id": "FR-00002",
+      "address": "42 Avenue des Champs-Elysees",
+      "postal_code": "75008",
+      "city": "Paris",
+      "latitude": 48.8698,
+      "longitude": 2.3075,
+      "presence_type": "station",
+      "opening_hours": "Lun-Dim: 00:00-24:00",
+      "services": "Station services, Toilettes publiques, Lavage auto",
+      "source": "gouvernement_francais",
+      "active": true,
+      "fuel_prices": [
+        {"fuel_type": "Gazole", "price_per_liter": 1.789, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "SP95", "price_per_liter": 1.899, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "E10", "price_per_liter": 1.849, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "SP98", "price_per_liter": 1.989, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null}
+      ]
+    },
+    {
+      "id": "3",
+      "source_id": "FR-00003",
+      "address": "8 Boulevard Haussmann",
+      "postal_code": "75009",
+      "city": "Paris",
+      "latitude": 48.8738,
+      "longitude": 2.3320,
+      "presence_type": "station",
+      "opening_hours": "Lun-Sam: 06:30-22:30, Dim: 07:30-21:30",
+      "services": "Station services, Borne electrique",
+      "source": "gouvernement_francais",
+      "active": true,
+      "fuel_prices": [
+        {"fuel_type": "Gazole", "price_per_liter": 1.749, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "E10", "price_per_liter": 1.819, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "GPLc", "price_per_liter": 0.929, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null}
+      ]
+    },
+    {
+      "id": "4",
+      "source_id": "FR-00004",
+      "address": "23 Rue de Belleville",
+      "postal_code": "75020",
+      "city": "Paris",
+      "latitude": 48.8650,
+      "longitude": 2.3910,
+      "presence_type": "station",
+      "opening_hours": "Lun-Sam: 06:00-21:00, Dim: 08:00-20:00",
+      "services": "Station services",
+      "source": "gouvernement_francais",
+      "active": true,
+      "fuel_prices": [
+        {"fuel_type": "Gazole", "price_per_liter": 1.769, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "E85", "price_per_liter": 0.989, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null}
+      ]
+    },
+    {
+      "id": "5",
+      "source_id": "FR-00005",
+      "address": "5 Place de la Nation",
+      "postal_code": "75012",
+      "city": "Paris",
+      "latitude": 48.8479,
+      "longitude": 2.3930,
+      "presence_type": "station",
+      "opening_hours": "Lun-Sam: 07:00-22:00, Dim: 08:00-20:00",
+      "services": "Station services, Toilettes publiques",
+      "source": "gouvernement_francais",
+      "active": true,
+      "fuel_prices": [
+        {"fuel_type": "Gazole", "price_per_liter": 1.779, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "SP95", "price_per_liter": 1.879, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "E10", "price_per_liter": 1.839, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null}
+      ]
+    },
+    {
+      "id": "6",
+      "source_id": "FR-00006",
+      "address": "12 Rue de la Republique",
+      "postal_code": "69002",
+      "city": "Lyon",
+      "latitude": 45.7578,
+      "longitude": 4.8340,
+      "presence_type": "station",
+      "opening_hours": "Lun-Sam: 06:00-22:00, Dim: 07:00-21:00",
+      "services": "Station services, Toilettes publiques",
+      "source": "gouvernement_francais",
+      "active": true,
+      "fuel_prices": [
+        {"fuel_type": "Gazole", "price_per_liter": 1.739, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "E10", "price_per_liter": 1.809, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "SP98", "price_per_liter": 1.949, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null}
+      ]
+    },
+    {
+      "id": "7",
+      "source_id": "FR-00007",
+      "address": "33 Avenue Jean Jaures",
+      "postal_code": "69007",
+      "city": "Lyon",
+      "latitude": 45.7490,
+      "longitude": 4.8450,
+      "presence_type": "station",
+      "opening_hours": "Lun-Dim: 05:30-23:00",
+      "services": "Station services, Lavage auto",
+      "source": "gouvernement_francais",
+      "active": true,
+      "fuel_prices": [
+        {"fuel_type": "Gazole", "price_per_liter": 1.759, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "SP95", "price_per_liter": 1.869, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "E85", "price_per_liter": 0.969, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "GPLc", "price_per_liter": 0.899, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null}
+      ]
+    },
+    {
+      "id": "8",
+      "source_id": "FR-00008",
+      "address": "7 Quai Saint-Antoine",
+      "postal_code": "69005",
+      "city": "Lyon",
+      "latitude": 45.7520,
+      "longitude": 4.8290,
+      "presence_type": "station",
+      "opening_hours": "Lun-Sam: 06:30-22:00, Dim: 08:00-20:00",
+      "services": "Station services",
+      "source": "gouvernement_francais",
+      "active": true,
+      "fuel_prices": [
+        {"fuel_type": "Gazole", "price_per_liter": 1.729, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "E10", "price_per_liter": 1.799, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null}
+      ]
+    },
+    {
+      "id": "9",
+      "source_id": "FR-00009",
+      "address": "19 Rue Garibaldi",
+      "postal_code": "69003",
+      "city": "Lyon",
+      "latitude": 45.7530,
+      "longitude": 4.8540,
+      "presence_type": "station",
+      "opening_hours": "Lun-Sam: 06:00-21:30, Dim: 08:00-19:30",
+      "services": "Station services, Borne electrique",
+      "source": "gouvernement_francais",
+      "active": true,
+      "fuel_prices": [
+        {"fuel_type": "Gazole", "price_per_liter": 1.769, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "SP95", "price_per_liter": 1.889, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "E10", "price_per_liter": 1.819, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "SP98", "price_per_liter": 1.979, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null}
+      ]
+    },
+    {
+      "id": "10",
+      "source_id": "FR-00010",
+      "address": "45 Cours de la Liberation",
+      "postal_code": "69008",
+      "city": "Lyon",
+      "latitude": 45.7380,
+      "longitude": 4.8620,
+      "presence_type": "station",
+      "opening_hours": "Lun-Sam: 07:00-22:00, Dim: 08:00-20:00",
+      "services": "Station services, Toilettes publiques",
+      "source": "gouvernement_francais",
+      "active": true,
+      "fuel_prices": [
+        {"fuel_type": "Gazole", "price_per_liter": 1.749, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null},
+        {"fuel_type": "GPLc", "price_per_liter": 0.919, "reported_at": "2026-08-20T10:00:00Z", "availability": "available", "rupture_type": null}
+      ]
+    }
+  ]
+}

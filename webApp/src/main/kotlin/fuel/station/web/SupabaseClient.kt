@@ -6,6 +6,8 @@ import kotlinx.coroutines.withTimeout
 private fun getSupabaseUrl(): String = js("window.FUEL_CONFIG.SUPABASE_URL") as String
 private fun getSupabaseKey(): String = js("window.FUEL_CONFIG.SUPABASE_ANON_KEY") as String
 
+private fun isLocal(): Boolean = js("window.FUEL_CONFIG.SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY_HERE'") as Boolean
+
 private fun supabaseHeaders(): dynamic {
     val key = getSupabaseKey()
     val h = js("({})")
@@ -22,7 +24,18 @@ private suspend fun fetchWithTimeout(url: String, opts: dynamic): dynamic {
     }
 }
 
+private suspend fun fetchMockStations(): Array<Station> {
+    val response = js("window.fetch('mock-stations.json')").await()
+    val ok = js("response.ok") as Boolean
+    if (!ok) throw Exception("Failed to load mock data")
+    val jsonText = js("response.text()").await() as String
+    val data = js("JSON.parse(jsonText)")
+    val arr = (js("data.stations") as Array<dynamic>)
+    return arr.map { parseStation(it) }.toTypedArray()
+}
+
 suspend fun fetchStations(lat: Double, lng: Double, radiusKm: Double): Array<Station> {
+    if (isLocal()) return fetchMockStations()
     val rpcUrl = "${getSupabaseUrl()}/rest/v1/rpc/get_nearby_stations_full"
     val body = js("JSON.stringify({p_latitude: lat, p_longitude: lng, p_radius_km: radiusKm})")
     val h = supabaseHeaders()
@@ -36,6 +49,7 @@ suspend fun fetchStations(lat: Double, lng: Double, radiusKm: Double): Array<Sta
 }
 
 suspend fun fetchAllStations(limit: Int = 5000): Array<Station> {
+    if (isLocal()) return fetchMockStations()
     val url = "${getSupabaseUrl()}/rest/v1/stations?select=*,fuel_prices(*)&active=eq.true&limit=$limit&order=id"
     val h = supabaseHeaders()
     val opts = js("({method: 'GET', headers: h})")
@@ -54,6 +68,7 @@ suspend fun fetchStationsInViewport(
     maxLng: Double,
     fuelType: String? = null
 ): Array<Station> {
+    if (isLocal()) return fetchMockStations()
     val rpcUrl = "${getSupabaseUrl()}/rest/v1/rpc/viewport_stations"
     val params = if (fuelType != null) {
         js("JSON.stringify({p_min_lat: minLat, p_min_lng: minLng, p_max_lat: maxLat, p_max_lng: maxLng, p_fuel_type: fuelType})")
@@ -71,6 +86,15 @@ suspend fun fetchStationsInViewport(
 }
 
 suspend fun searchStations(query: String): Array<Station> {
+    if (isLocal()) {
+        val all = fetchMockStations()
+        val q = query.lowercase()
+        return all.filter { s ->
+            s.address?.lowercase()?.contains(q) == true ||
+            s.city?.lowercase()?.contains(q) == true ||
+            s.sourceId.lowercase().contains(q)
+        }.toTypedArray()
+    }
     val url = "${getSupabaseUrl()}/rest/v1/stations?select=*&active=eq.true&or=(city.ilike.*$query*,address.ilike.*$query*)&limit=50"
     val h = supabaseHeaders()
     val opts = js("({method: 'GET', headers: h})")
