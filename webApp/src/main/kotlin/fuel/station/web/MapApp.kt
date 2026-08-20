@@ -239,7 +239,7 @@ class MapApp {
                 for (station in results) {
                     val item = js("document.createElement('div')")
                     js("item.className = 'search-result-item'")
-                    val cityPart = station.city?.let { ", $it" } ?: ""
+                    val cityPart = station.city?.let { city -> ", $city" } ?: ""
                     val label = "${escapeHtml(station.displayName())}$cityPart"
                     js("item.textContent = label")
                     js("(function(s) { item.addEventListener('mousedown', function(e) { e.preventDefault(); window._flyToStation(s) }) })(station)")
