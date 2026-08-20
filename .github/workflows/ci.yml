@@ -78,7 +78,13 @@ jobs:
             echo "::error::SUPABASE_URL or SUPABASE_ANON_KEY not configured."
             exit 1
           fi
-          printf 'window.FUEL_CONFIG = {\n  SUPABASE_URL: "%s",\n  SUPABASE_ANON_KEY: "%s"\n};\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > web-dist/config.js
+          cat > web-dist/config.js <<EOF
+// Generated at deploy time from GitHub secrets/vars
+window.FUEL_CONFIG = {
+  SUPABASE_URL: "$SUPABASE_URL",
+  SUPABASE_ANON_KEY: "$SUPABASE_ANON_KEY"
+};
+EOF
           echo "Generated config.js:"
           cat web-dist/config.js
 

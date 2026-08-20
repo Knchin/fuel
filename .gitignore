@@ -4,3 +4,11 @@ local.properties
 *.klib
 *.jar
 kotlin-js-store/
+
+# Environment files
+env/local/.env
+env/local/.env.local
+*.env.local
+
+# Generated config
+webApp/src/main/resources/config.js
